@@ -205,6 +205,7 @@ Sistem telah di-scaffold penuh dan lulus verifikasi. Ringkasan yang sudah dibang
   - Peneliti (auth+verified): dashboard, kirim-simulasi (validasi `research_key` via `Hash::check`), atur research key, tabel responden (filter kelas/status/search + paginasi), tabel reminder + tandai follow-up, ekspor CSV (toggle anonimisasi).
 
 ### Frontend (React + Inertia)
+- **Landing page** (`welcome`): halaman publik bertema akademik/institusional (SMA Negeri 1 Kendari, KAB + Random Forest) — header + hero + panel alur pengumpulan data + dua kartu instrumen + footer judul skripsi. Memakai token tema aplikasi (light/dark), tanpa gradien/emoji/gaya marketing. Tombol menuju login/dashboard.
 - Publik standalone (tanpa chrome peneliti): `phishing/portal` (form login tiruan — **hanya mengirim `{action, keystroke_detected}`, tidak pernah value input**), `phishing/reveal` (debrief edukatif + tombol lanjut ke Tally).
 - Peneliti: `dashboard` (kartu statistik + bar breakdown status & perilaku), `send-simulation` (impor CSV/manual + preview + research key), `respondents/index`, `reminders/index`, `data-export`. Nav sidebar diperbarui.
 
