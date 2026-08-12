@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Controllers\Simulation;
+
+use App\Http\Controllers\Controller;
+use App\Models\Respondent;
+use App\Services\SimulationRecorder;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class PortalBehaviorController extends Controller
+{
+    /**
+     * Record the respondent's final action on the fake portal.
+     *
+     * The request intentionally only carries a coarse action and a boolean
+     * keystroke flag — never the email/password values typed into the form.
+     */
+    public function store(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:submit,report'],
+            'keystroke_detected' => ['required', 'boolean'],
+        ]);
+
+        $recorder->recordBehavior($respondent, $validated['action'], (bool) $validated['keystroke_detected']);
+
+        return to_route('simulation.reveal', ['respondent' => $respondent->session_token]);
+    }
+
+    /**
+     * Show the debrief / reveal page (mandatory before the questionnaire).
+     */
+    public function reveal(Respondent $respondent): Response
+    {
+        $tallyUrl = config('services.simulation.tally_url');
+
+        return Inertia::render('phishing/reveal', [
+            'token' => $respondent->session_token,
+            'questionnaireUrl' => $tallyUrl
+                ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
+                : null,
+        ]);
+    }
+}
