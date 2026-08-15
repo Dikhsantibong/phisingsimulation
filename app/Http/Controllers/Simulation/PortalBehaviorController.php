@@ -21,11 +21,16 @@ class PortalBehaviorController extends Controller
     public function store(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse
     {
         $validated = $request->validate([
-            'action' => ['required', 'in:submit,report'],
+            'action' => ['required', 'in:submit,report,reject'],
             'keystroke_detected' => ['required', 'boolean'],
+            'kelas' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $recorder->recordBehavior($respondent, $validated['action'], (bool) $validated['keystroke_detected']);
+        if (!empty($validated['kelas'])) {
+            $respondent->update(['class_group' => $validated['kelas']]);
+        }
+
+        $event = $recorder->recordBehavior($respondent, $validated['action'], (bool) $validated['keystroke_detected']);
 
         return to_route('simulation.reveal', ['respondent' => $respondent->session_token]);
     }
@@ -39,6 +44,8 @@ class PortalBehaviorController extends Controller
 
         return Inertia::render('phishing/reveal', [
             'token' => $respondent->session_token,
+            'behavior_status' => $respondent->simulationEvent?->behavior_status?->value,
+            'keystroke_detected' => (bool) $respondent->simulationEvent?->keystroke_detected,
             'questionnaireUrl' => $tallyUrl
                 ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
                 : null,

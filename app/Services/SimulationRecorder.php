@@ -60,7 +60,7 @@ class SimulationRecorder
     {
         $behavior = match (true) {
             $action === 'submit' => BehaviorStatus::Berisiko,
-            $action === 'report' && $keystrokeDetected => BehaviorStatus::Netral,
+            in_array($action, ['report', 'reject']) && $keystrokeDetected => BehaviorStatus::Netral,
             default => BehaviorStatus::Waspada,
         };
 

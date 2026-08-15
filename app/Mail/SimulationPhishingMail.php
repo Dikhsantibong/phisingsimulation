@@ -27,7 +27,7 @@ class SimulationPhishingMail extends Mailable
         return new Content(
             markdown: 'mail.simulation-phishing',
             with: [
-                'accessUrl' => route('simulation.access', ['token' => $this->respondent->session_token]),
+                'accessUrl' => route('simulation.access', ['respondent' => $this->respondent->session_token]),
             ],
         );
     }

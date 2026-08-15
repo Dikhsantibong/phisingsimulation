@@ -11,20 +11,13 @@ type Props = {
     token: string;
 };
 
-/**
- * Fake "Portal Pembelajaran Digital" login page.
- *
- * ETHICAL GUARANTEE: the values typed into the email/password fields are NEVER
- * read or transmitted. The inputs are uncontrolled; we only flip a boolean
- * `keystrokeDetected` flag on the first input event, and submit only
- * { action, keystroke_detected } to the server.
- */
 export default function Portal({ token }: Props) {
     const [keystrokeDetected, setKeystrokeDetected] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [kelas, setKelas] = useState('');
     const submitted = useRef(false);
 
-    const respond = (action: 'submit' | 'report') => {
+    const respond = (action: 'submit' | 'report' | 'reject') => {
         if (submitted.current) {
             return;
         }
@@ -34,23 +27,24 @@ export default function Portal({ token }: Props) {
         router.post(store.url({ respondent: token }), {
             action,
             keystroke_detected: keystrokeDetected,
+            kelas,
         });
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-4 dark:bg-neutral-950">
+        <div className="flex min-h-screen items-center justify-center bg-blue-50/50 p-4 dark:bg-slate-950">
             <Head title="Portal Pembelajaran Digital" />
 
-            <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="w-full max-w-md rounded-2xl border border-blue-100 bg-white p-8 shadow-lg shadow-blue-100/40 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
                 <div className="mb-6 flex flex-col items-center text-center">
-                    <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-blue-600 text-white">
-                        <GraduationCap className="size-7" />
+                    <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                        <GraduationCap className="size-8" />
                     </div>
-                    <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-                        Portal Pembelajaran Digital
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                        Sistem Pembelajaran Digital
                     </h1>
-                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                        Masuk untuk memverifikasi akun Anda
+                    <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        Masuk untuk memverifikasi identitas Anda
                     </p>
                 </div>
 
@@ -63,51 +57,78 @@ export default function Portal({ token }: Props) {
                     onInput={() => setKeystrokeDetected(true)}
                 >
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email / NIS</Label>
+                        <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email atau NIS</Label>
                         <Input
                             id="email"
                             name="email"
                             type="text"
                             autoComplete="off"
+                            required
                             placeholder="nama@sekolah.sch.id"
+                            className="border-blue-200 focus-visible:ring-blue-600 dark:border-slate-700"
+                        />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                        <Label htmlFor="kelas" className="text-slate-700 dark:text-slate-300">Kelas</Label>
+                        <Input
+                            id="kelas"
+                            name="kelas"
+                            type="text"
+                            autoComplete="off"
+                            required
+                            placeholder="Contoh: X IPA 1"
+                            value={kelas}
+                            onChange={(e) => setKelas(e.target.value)}
+                            className="border-blue-200 focus-visible:ring-blue-600 dark:border-slate-700"
                         />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Kata Sandi</Label>
+                        <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Kata Sandi</Label>
                         <Input
                             id="password"
                             name="password"
                             type="password"
+                            required
                             autoComplete="off"
                             placeholder="••••••••"
+                            className="border-blue-200 focus-visible:ring-blue-600 dark:border-slate-700"
                         />
                     </div>
 
-                    <Button
-                        type="submit"
-                        className="mt-2 w-full"
-                        disabled={processing}
-                    >
-                        {processing && <Spinner />}
-                        Masuk
-                    </Button>
+                    <div className="mt-2 flex flex-col gap-3">
+                        <Button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            disabled={processing}
+                        >
+                            {processing && <Spinner className="mr-2" />}
+                            Verifikasi Akun
+                        </Button>
+                        
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => respond('reject')}
+                            disabled={processing}
+                            className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                            Tolak Aktivitas Ini
+                        </Button>
+                    </div>
                 </form>
 
-                <div className="mt-6 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+                <div className="mt-8 flex justify-center border-t border-slate-100 pt-6 dark:border-slate-800">
                     <button
                         type="button"
                         onClick={() => respond('report')}
                         disabled={processing}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:opacity-50 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
+                        className="flex items-center gap-1.5 text-xs font-medium text-slate-400 transition hover:text-slate-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-slate-300"
                     >
-                        <ShieldAlert className="size-4" />
+                        <ShieldAlert className="size-3.5" />
                         Laporkan sebagai Mencurigakan
                     </button>
-                    <p className="mt-2 text-center text-xs text-neutral-400">
-                        Merasa email ini mencurigakan? Jangan masukkan data
-                        Anda.
-                    </p>
                 </div>
             </div>
         </div>
