@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { Check, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { followedUp, index as remindersIndex } from '@/routes/reminders';
+import { followedUp, index as remindersIndex, wa } from '@/routes/reminders';
 
 type Reminder = {
     id: number;
@@ -72,7 +73,7 @@ export default function RemindersIndex({ reminders }: Props) {
                                             Terkirim
                                         </th>
                                         <th className="p-3 font-medium">
-                                            Follow-up
+                                            Status Penanganan
                                         </th>
                                         <th className="p-3" />
                                     </tr>
@@ -127,16 +128,47 @@ export default function RemindersIndex({ reminders }: Props) {
                                             </td>
                                             <td className="p-3 text-right">
                                                 {!r.followed_up_at && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            markDone(r.id)
-                                                        }
-                                                    >
-                                                        <Check className="size-4" />
-                                                        Tandai follow-up
-                                                    </Button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="default"
+                                                            className="bg-emerald-600 hover:bg-emerald-700"
+                                                            onClick={() => {
+                                                                const message = r.reminder_type === 'Tidak Menyelesaikan Kuesioner' 
+                                                                    ? 'Sistem akan mengirim link evaluasi Tally ke WhatsApp responden.' 
+                                                                    : 'Sistem akan mengirim ulang peringatan keamanan palsu ke WhatsApp responden.';
+                                                                const isDark = document.documentElement.classList.contains('dark');
+                                                                
+                                                                Swal.fire({
+                                                                    title: 'Kirim WhatsApp?',
+                                                                    text: message,
+                                                                    icon: 'question',
+                                                                    showCancelButton: true,
+                                                                    background: isDark ? '#18181b' : '#ffffff',
+                                                                    color: isDark ? '#f8fafc' : '#0f172a',
+                                                                    confirmButtonColor: '#059669',
+                                                                    cancelButtonColor: isDark ? '#334155' : '#64748b',
+                                                                    confirmButtonText: 'Ya, Kirim',
+                                                                    cancelButtonText: 'Batal'
+                                                                }).then((res) => {
+                                                                    if (res.isConfirmed) {
+                                                                        router.post(wa.url({ reminder: r.id }), {}, { preserveScroll: true });
+                                                                    }
+                                                                });
+                                                            }}
+                                                        >
+                                                            <MessageCircle className="size-4" />
+                                                            {r.reminder_type === 'Tidak Menyelesaikan Kuesioner' ? 'Kirim Tally' : 'Kirim Simulasi'}
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => markDone(r.id)}
+                                                        >
+                                                            <Check className="size-4" />
+                                                            Tandai Selesai
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>

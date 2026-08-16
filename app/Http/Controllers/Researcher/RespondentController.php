@@ -55,4 +55,19 @@ class RespondentController extends Controller
             'behaviorStatuses' => collect(BehaviorStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
         ]);
     }
+
+    /**
+     * Delete a respondent from the database.
+     */
+    public function destroy(Respondent $respondent): \Illuminate\Http\RedirectResponse
+    {
+        $respondent->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Data responden berhasil dihapus.',
+        ]);
+
+        return back();
+    }
 }

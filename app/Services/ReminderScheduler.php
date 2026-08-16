@@ -30,13 +30,25 @@ class ReminderScheduler
 
     private function remindIgnoredSimulations(): int
     {
-        $threshold = now()->subHours((int) config('services.simulation.ignored_after_hours'));
+        $defaultThreshold = now()->subHours((int) config('services.simulation.ignored_after_hours'));
         $created = 0;
 
         $respondents = Respondent::query()
             ->where('status', RespondentStatus::Sent)
-            ->whereHas('simulationEvent', function ($query) use ($threshold) {
-                $query->whereNull('first_access_at')->where('sent_at', '<=', $threshold);
+            ->where(function ($q) use ($defaultThreshold) {
+                $q->where(function ($sq) {
+                    $sq->whereNotNull('expires_at')
+                       ->where('expires_at', '<=', now());
+                })
+                ->orWhere(function ($sq) use ($defaultThreshold) {
+                    $sq->whereNull('expires_at')
+                       ->whereHas('simulationEvent', function ($ssq) use ($defaultThreshold) {
+                           $ssq->where('sent_at', '<=', $defaultThreshold);
+                       });
+                });
+            })
+            ->whereHas('simulationEvent', function ($query) {
+                $query->whereNull('first_access_at');
             })
             ->get();
 
@@ -49,19 +61,50 @@ class ReminderScheduler
 
     private function remindUnfinishedQuestionnaires(): int
     {
-        $threshold = now()->subHours((int) config('services.simulation.questionnaire_after_hours'));
+        $defaultThreshold = now()->subHours((int) config('services.simulation.questionnaire_after_hours'));
         $created = 0;
 
         $respondents = Respondent::query()
             ->where('status', RespondentStatus::CompletedBehavior)
             ->whereDoesntHave('questionnaireResult')
-            ->whereHas('simulationEvent', function ($query) use ($threshold) {
-                $query->where('response_at', '<=', $threshold);
+            ->whereHas('simulationEvent', function ($q) {
+                $q->whereNotNull('response_at');
             })
             ->get();
 
         foreach ($respondents as $respondent) {
-            $created += (int) $this->queueReminder($respondent, ReminderType::KuesionerBelumSelesai);
+            $event = $respondent->simulationEvent;
+            if (!$event || !$event->response_at) continue;
+
+            $shouldQueue = false;
+
+            if ($respondent->expires_at && $event->sent_at) {
+                // Time limit was configured. Get original duration in minutes
+                $originalDuration = $event->sent_at->diffInMinutes($respondent->expires_at);
+                
+                if ($originalDuration >= 60) {
+                    // Jika batas waktu responnya sekam ke atas, set 10 menit sesudah beraksi di portal
+                    $thresholdTime = clone $event->response_at;
+                    $thresholdTime->addMinutes(10);
+                } else {
+                    // Jika di bawah sejam, ikuti batas waktu respon
+                    $thresholdTime = clone $event->response_at;
+                    $thresholdTime->addMinutes($originalDuration);
+                }
+                
+                if (now()->greaterThanOrEqualTo($thresholdTime)) {
+                    $shouldQueue = true;
+                }
+            } else {
+                // No time limit configured, use default questionnaire threshold
+                if ($event->response_at->lessThanOrEqualTo($defaultThreshold)) {
+                    $shouldQueue = true;
+                }
+            }
+
+            if ($shouldQueue) {
+                $created += (int) $this->queueReminder($respondent, ReminderType::KuesionerBelumSelesai);
+            }
         }
 
         return $created;

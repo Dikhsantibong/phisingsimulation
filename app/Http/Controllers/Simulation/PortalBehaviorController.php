@@ -18,8 +18,9 @@ class PortalBehaviorController extends Controller
      * The request intentionally only carries a coarse action and a boolean
      * keystroke flag — never the email/password values typed into the form.
      */
-    public function store(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse
+    public function store(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse|\Illuminate\Http\Response
     {
+
         $validated = $request->validate([
             'action' => ['required', 'in:submit,report,reject'],
             'keystroke_detected' => ['required', 'boolean'],

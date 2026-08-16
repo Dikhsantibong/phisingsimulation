@@ -1,6 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { Search, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -177,6 +179,9 @@ export default function RespondentsIndex({
                                         <th className="p-3 font-medium">
                                             Respon
                                         </th>
+                                        <th className="p-3 font-medium text-right">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -233,12 +238,41 @@ export default function RespondentsIndex({
                                             <td className="p-3 text-muted-foreground">
                                                 {fmt(r.response_at)}
                                             </td>
+                                            <td className="p-3 text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+                                                    onClick={() => {
+                                                        const isDark = document.documentElement.classList.contains('dark');
+                                                        
+                                                        Swal.fire({
+                                                            title: 'Hapus Responden?',
+                                                            text: 'Semua riwayat simulasi dan log aksi akan terhapus.',
+                                                            icon: 'warning',
+                                                            showCancelButton: true,
+                                                            background: isDark ? '#18181b' : '#ffffff',
+                                                            color: isDark ? '#f8fafc' : '#0f172a',
+                                                            confirmButtonColor: '#ef4444',
+                                                            cancelButtonColor: isDark ? '#334155' : '#64748b',
+                                                            confirmButtonText: 'Ya, Hapus',
+                                                            cancelButtonText: 'Batal'
+                                                        }).then((res) => {
+                                                            if (res.isConfirmed) {
+                                                                router.delete(`/respondents/${r.id}`);
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </td>
                                         </tr>
                                     ))}
                                     {respondents.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={8}
+                                                colSpan={9}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada data responden.

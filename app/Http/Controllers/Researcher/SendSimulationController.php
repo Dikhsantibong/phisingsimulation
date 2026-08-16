@@ -29,14 +29,23 @@ class SendSimulationController extends Controller
      */
     public function store(SendSimulationRequest $request): RedirectResponse
     {
-        $rows = $request->validated()['respondents'];
+        $data = $request->validated();
+        $rows = $data['respondents'];
 
-        $respondents = DB::transaction(function () use ($rows) {
+        $expiresAt = null;
+        if (!empty($data['time_limit_value'])) {
+            $value = (int) $data['time_limit_value'];
+            $unit = $data['time_limit_unit'] ?? 'minutes';
+            $expiresAt = $unit === 'hours' ? now()->addHours($value) : now()->addMinutes($value);
+        }
+
+        $respondents = DB::transaction(function () use ($rows, $expiresAt) {
             return collect($rows)->map(fn (array $row) => Respondent::create([
                 'name' => $row['name'] ?? null,
-                'class_group' => $row['class_group'],
+                'class_group' => $row['class_group'] ?? 'Default',
                 'email' => $row['email'],
                 'whatsapp_number' => $row['whatsapp_number'] ?? null,
+                'expires_at' => $expiresAt,
             ]));
         });
 

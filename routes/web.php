@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('respondents', [RespondentController::class, 'index'])->name('respondents.index');
+    Route::delete('respondents/{respondent}', [RespondentController::class, 'destroy'])->name('respondents.destroy');
 
     Route::get('send-simulation', [SendSimulationController::class, 'create'])->name('send-simulation.create');
     Route::post('send-simulation', [SendSimulationController::class, 'store'])->name('send-simulation.store');
@@ -53,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
     Route::put('reminders/{reminder}/followed-up', [ReminderController::class, 'markFollowedUp'])->name('reminders.followed-up');
+    Route::post('reminders/{reminder}/wa', \App\Http\Controllers\Researcher\SendWAReminderController::class)->name('reminders.wa');
 
     Route::get('export', [DataExportController::class, 'index'])->name('export.index');
     Route::get('export/download', [DataExportController::class, 'download'])->name('export.download');

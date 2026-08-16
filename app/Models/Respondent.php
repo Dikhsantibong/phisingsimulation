@@ -21,13 +21,14 @@ use Illuminate\Support\Carbon;
  * @property string $email
  * @property string|null $whatsapp_number
  * @property RespondentStatus $status
+ * @property Carbon|null $expires_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read SimulationEvent|null $simulationEvent
  * @property-read QuestionnaireResult|null $questionnaireResult
  * @property-read Collection<int, ReminderLog> $reminderLogs
  */
-#[Fillable(['session_token', 'class_group', 'name', 'email', 'whatsapp_number', 'status'])]
+#[Fillable(['session_token', 'class_group', 'name', 'email', 'whatsapp_number', 'status', 'expires_at'])]
 class Respondent extends Model
 {
     /** @use HasFactory<RespondentFactory> */
@@ -52,6 +53,7 @@ class Respondent extends Model
     {
         return [
             'status' => RespondentStatus::class,
+            'expires_at' => 'datetime',
         ];
     }
 

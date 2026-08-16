@@ -20,9 +20,11 @@ class SendSimulationRequest extends FormRequest
     {
         return [
             'research_key' => ['required', 'string'],
+            'time_limit_value' => ['nullable', 'integer', 'min:1'],
+            'time_limit_unit' => ['nullable', 'string', 'in:minutes,hours'],
             'respondents' => ['required', 'array', 'min:1'],
             'respondents.*.name' => ['nullable', 'string', 'max:255'],
-            'respondents.*.class_group' => ['required', 'string', 'max:255'],
+            'respondents.*.class_group' => ['nullable', 'string', 'max:255'],
             'respondents.*.email' => ['required', 'email', 'max:255'],
             'respondents.*.whatsapp_number' => ['nullable', 'string', 'max:32'],
         ];
