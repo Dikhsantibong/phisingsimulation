@@ -59,7 +59,12 @@ export default function Portal({ token }: Props) {
                     onInput={() => setKeystrokeDetected(true)}
                 >
                     <div className="grid gap-2">
-                        <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email atau NIS</Label>
+                        <Label
+                            htmlFor="email"
+                            className="text-slate-700 dark:text-slate-300"
+                        >
+                            Email atau NIS
+                        </Label>
                         <Input
                             id="email"
                             name="email"
@@ -70,9 +75,14 @@ export default function Portal({ token }: Props) {
                             className="border-blue-200 focus-visible:ring-blue-600 dark:border-slate-700"
                         />
                     </div>
-                    
+
                     <div className="grid gap-2">
-                        <Label htmlFor="kelas" className="text-slate-700 dark:text-slate-300">Kelas</Label>
+                        <Label
+                            htmlFor="kelas"
+                            className="text-slate-700 dark:text-slate-300"
+                        >
+                            Kelas
+                        </Label>
                         <Input
                             id="kelas"
                             name="kelas"
@@ -86,7 +96,7 @@ export default function Portal({ token }: Props) {
                         />
                     </div>
 
-                    <div className="grid gap-2 relative">
+                    <div className="relative grid gap-2">
                         <Label
                             htmlFor="password"
                             className="text-slate-600 dark:text-slate-300"
@@ -96,7 +106,7 @@ export default function Portal({ token }: Props) {
                         <div className="relative">
                             <Input
                                 id="password"
-                                type={showPassword ? "text" : "password"}
+                                type={showPassword ? 'text' : 'password'}
                                 required
                                 autoComplete="off"
                                 placeholder="••••••••"
@@ -105,7 +115,7 @@ export default function Portal({ token }: Props) {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                             >
                                 {showPassword ? (
                                     <EyeOff className="size-4" />
@@ -125,7 +135,7 @@ export default function Portal({ token }: Props) {
                             {processing && <Spinner className="mr-2" />}
                             Verifikasi Akun
                         </Button>
-                        
+
                         <Button
                             type="button"
                             variant="outline"

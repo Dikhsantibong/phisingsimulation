@@ -62,8 +62,8 @@ const ALL = 'all';
 
 function fmt(iso: string | null): string {
     if (!iso) {
-return '—';
-}
+        return '—';
+    }
 
     return new Date(iso).toLocaleString('id-ID', {
         dateStyle: 'short',
@@ -107,10 +107,10 @@ export default function RespondentsIndex({
                                 defaultValue={filters.search ?? ''}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
-applyFilter({
+                                        applyFilter({
                                             search: e.currentTarget.value,
                                         });
-}
+                                    }
                                 }}
                             />
                         </div>
@@ -183,7 +183,7 @@ applyFilter({
                                         <th className="p-3 font-medium">
                                             Respon
                                         </th>
-                                        <th className="p-3 font-medium text-right">
+                                        <th className="p-3 text-right font-medium">
                                             Aksi
                                         </th>
                                     </tr>
@@ -248,22 +248,39 @@ applyFilter({
                                                     size="sm"
                                                     className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
                                                     onClick={() => {
-                                                        const isDark = document.documentElement.classList.contains('dark');
-                                                        
+                                                        const isDark =
+                                                            document.documentElement.classList.contains(
+                                                                'dark',
+                                                            );
+
                                                         Swal.fire({
                                                             title: 'Hapus Responden?',
                                                             text: 'Semua riwayat simulasi dan log aksi akan terhapus.',
                                                             icon: 'warning',
                                                             showCancelButton: true,
-                                                            background: isDark ? '#18181b' : '#ffffff',
-                                                            color: isDark ? '#f8fafc' : '#0f172a',
-                                                            confirmButtonColor: '#ef4444',
-                                                            cancelButtonColor: isDark ? '#334155' : '#64748b',
-                                                            confirmButtonText: 'Ya, Hapus',
-                                                            cancelButtonText: 'Batal'
+                                                            background: isDark
+                                                                ? '#18181b'
+                                                                : '#ffffff',
+                                                            color: isDark
+                                                                ? '#f8fafc'
+                                                                : '#0f172a',
+                                                            confirmButtonColor:
+                                                                '#ef4444',
+                                                            cancelButtonColor:
+                                                                isDark
+                                                                    ? '#334155'
+                                                                    : '#64748b',
+                                                            confirmButtonText:
+                                                                'Ya, Hapus',
+                                                            cancelButtonText:
+                                                                'Batal',
                                                         }).then((res) => {
-                                                            if (res.isConfirmed) {
-                                                                router.delete(`/respondents/${r.id}`);
+                                                            if (
+                                                                res.isConfirmed
+                                                            ) {
+                                                                router.delete(
+                                                                    `/respondents/${r.id}`,
+                                                                );
                                                             }
                                                         });
                                                     }}

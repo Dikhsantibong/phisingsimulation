@@ -54,10 +54,12 @@ export default function SendSimulation({ hasResearchKey }: Props) {
     const [researchKey, setResearchKey] = useState('');
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    
+
     // Default null means no limit
     const [timeLimitValue, setTimeLimitValue] = useState<string>('');
-    const [timeLimitUnit, setTimeLimitUnit] = useState<'minutes' | 'hours'>('minutes');
+    const [timeLimitUnit, setTimeLimitUnit] = useState<'minutes' | 'hours'>(
+        'minutes',
+    );
 
     const emptyRow: Row = {
         name: '',
@@ -65,10 +67,7 @@ export default function SendSimulation({ hasResearchKey }: Props) {
         email: '',
         whatsapp_number: '',
     };
-    const validRows = useMemo(
-        () => rows.filter((r) => r.email),
-        [rows],
-    );
+    const validRows = useMemo(() => rows.filter((r) => r.email), [rows]);
 
     const handleFile = (file: File) => {
         const reader = new FileReader();
@@ -91,7 +90,9 @@ export default function SendSimulation({ hasResearchKey }: Props) {
             {
                 research_key: researchKey,
                 respondents: validRows,
-                time_limit_value: timeLimitValue ? Number(timeLimitValue) : null,
+                time_limit_value: timeLimitValue
+                    ? Number(timeLimitValue)
+                    : null,
                 time_limit_unit: timeLimitUnit,
             },
             {
@@ -287,12 +288,16 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                 {/* Send */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Konfigurasi & Pengiriman</CardTitle>
+                        <CardTitle className="text-base">
+                            Konfigurasi & Pengiriman
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                             <div className="grid flex-1 gap-2">
-                                <Label htmlFor="time_limit_value">Batas Waktu Respon (Opsional)</Label>
+                                <Label htmlFor="time_limit_value">
+                                    Batas Waktu Respon (Opsional)
+                                </Label>
                                 <div className="flex gap-2">
                                     <Input
                                         id="time_limit_value"
@@ -300,23 +305,34 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                         min="1"
                                         placeholder="Contoh: 30"
                                         value={timeLimitValue}
-                                        onChange={(e) => setTimeLimitValue(e.target.value)}
+                                        onChange={(e) =>
+                                            setTimeLimitValue(e.target.value)
+                                        }
                                         className="w-full"
                                     />
                                     <select
                                         value={timeLimitUnit}
-                                        onChange={(e) => setTimeLimitUnit(e.target.value as 'minutes' | 'hours')}
-                                        className="rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                        onChange={(e) =>
+                                            setTimeLimitUnit(
+                                                e.target.value as
+                                                    'minutes' | 'hours',
+                                            )
+                                        }
+                                        className="rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                                     >
                                         <option value="minutes">Menit</option>
                                         <option value="hours">Jam</option>
                                     </select>
                                 </div>
-                                <InputError message={errors['time_limit_value']} />
-                                <p className="text-xs text-muted-foreground">Kosongkan jika tidak ada batas waktu.</p>
+                                <InputError
+                                    message={errors['time_limit_value']}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Kosongkan jika tidak ada batas waktu.
+                                </p>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end border-t pt-4">
+                        <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
                             <div className="grid flex-1 gap-2">
                                 <Label htmlFor="send_research_key">
                                     Research key (konfirmasi pengiriman)
@@ -326,7 +342,9 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                     type="password"
                                     autoComplete="off"
                                     value={researchKey}
-                                    onChange={(e) => setResearchKey(e.target.value)}
+                                    onChange={(e) =>
+                                        setResearchKey(e.target.value)
+                                    }
                                     disabled={!hasResearchKey}
                                 />
                                 <InputError message={errors['research_key']} />
@@ -346,13 +364,13 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                     validRows.length === 0
                                 }
                             >
-                            {processing ? (
-                                <Spinner />
-                            ) : (
-                                <Send className="size-4" />
-                            )}
-                            Kirim Simulasi
-                        </Button>
+                                {processing ? (
+                                    <Spinner />
+                                ) : (
+                                    <Send className="size-4" />
+                                )}
+                                Kirim Simulasi
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

@@ -31,8 +31,8 @@ type Props = {
 
 function fmt(iso: string | null): string {
     if (!iso) {
-return '—';
-}
+        return '—';
+    }
 
     return new Date(iso).toLocaleString('id-ID', {
         dateStyle: 'short',
@@ -137,36 +137,72 @@ export default function RemindersIndex({ reminders }: Props) {
                                                             variant="default"
                                                             className="bg-emerald-600 hover:bg-emerald-700"
                                                             onClick={() => {
-                                                                const message = r.reminder_type === 'Tidak Menyelesaikan Kuesioner' 
-                                                                    ? 'Sistem akan mengirim link evaluasi Tally ke WhatsApp responden.' 
-                                                                    : 'Sistem akan mengirim ulang peringatan keamanan palsu ke WhatsApp responden.';
-                                                                const isDark = document.documentElement.classList.contains('dark');
-                                                                
+                                                                const message =
+                                                                    r.reminder_type ===
+                                                                    'Tidak Menyelesaikan Kuesioner'
+                                                                        ? 'Sistem akan mengirim link evaluasi Tally ke WhatsApp responden.'
+                                                                        : 'Sistem akan mengirim ulang peringatan keamanan palsu ke WhatsApp responden.';
+                                                                const isDark =
+                                                                    document.documentElement.classList.contains(
+                                                                        'dark',
+                                                                    );
+
                                                                 Swal.fire({
                                                                     title: 'Kirim WhatsApp?',
                                                                     text: message,
                                                                     icon: 'question',
                                                                     showCancelButton: true,
-                                                                    background: isDark ? '#18181b' : '#ffffff',
-                                                                    color: isDark ? '#f8fafc' : '#0f172a',
-                                                                    confirmButtonColor: '#059669',
-                                                                    cancelButtonColor: isDark ? '#334155' : '#64748b',
-                                                                    confirmButtonText: 'Ya, Kirim',
-                                                                    cancelButtonText: 'Batal'
-                                                                }).then((res) => {
-                                                                    if (res.isConfirmed) {
-                                                                        router.post(wa.url({ reminder: r.id }), {}, { preserveScroll: true });
-                                                                    }
-                                                                });
+                                                                    background:
+                                                                        isDark
+                                                                            ? '#18181b'
+                                                                            : '#ffffff',
+                                                                    color: isDark
+                                                                        ? '#f8fafc'
+                                                                        : '#0f172a',
+                                                                    confirmButtonColor:
+                                                                        '#059669',
+                                                                    cancelButtonColor:
+                                                                        isDark
+                                                                            ? '#334155'
+                                                                            : '#64748b',
+                                                                    confirmButtonText:
+                                                                        'Ya, Kirim',
+                                                                    cancelButtonText:
+                                                                        'Batal',
+                                                                }).then(
+                                                                    (res) => {
+                                                                        if (
+                                                                            res.isConfirmed
+                                                                        ) {
+                                                                            router.post(
+                                                                                wa.url(
+                                                                                    {
+                                                                                        reminder:
+                                                                                            r.id,
+                                                                                    },
+                                                                                ),
+                                                                                {},
+                                                                                {
+                                                                                    preserveScroll: true,
+                                                                                },
+                                                                            );
+                                                                        }
+                                                                    },
+                                                                );
                                                             }}
                                                         >
                                                             <MessageCircle className="size-4" />
-                                                            {r.reminder_type === 'Tidak Menyelesaikan Kuesioner' ? 'Kirim Tally' : 'Kirim Simulasi'}
+                                                            {r.reminder_type ===
+                                                            'Tidak Menyelesaikan Kuesioner'
+                                                                ? 'Kirim Tally'
+                                                                : 'Kirim Simulasi'}
                                                         </Button>
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            onClick={() => markDone(r.id)}
+                                                            onClick={() =>
+                                                                markDone(r.id)
+                                                            }
                                                         >
                                                             <Check className="size-4" />
                                                             Tandai Selesai

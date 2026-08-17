@@ -14,7 +14,8 @@ export default function Expired() {
                     Tautan Kedaluwarsa
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400">
-                    Batas waktu respon untuk simulasi ini telah berakhir. Anda tidak dapat lagi mengakses halaman ini.
+                    Batas waktu respon untuk simulasi ini telah berakhir. Anda
+                    tidak dapat lagi mengakses halaman ini.
                 </p>
             </div>
         </div>
