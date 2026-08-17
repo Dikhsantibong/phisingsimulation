@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import Swal from 'sweetalert2';
 import { Check, MessageCircle } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,7 +30,10 @@ type Props = {
 };
 
 function fmt(iso: string | null): string {
-    if (!iso) return '—';
+    if (!iso) {
+return '—';
+}
+
     return new Date(iso).toLocaleString('id-ID', {
         dateStyle: 'short',
         timeStyle: 'short',

@@ -1,6 +1,7 @@
 import { Form, Head, router } from '@inertiajs/react';
 import { KeyRound, Send, Trash2, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { store } from '@/actions/App/Http/Controllers/Researcher/SendSimulationController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/actions/App/Http/Controllers/Researcher/SendSimulationController';
 import { update as updateResearchKey } from '@/routes/research-key';
 import { create as sendSimulationCreate } from '@/routes/send-simulation';
 
@@ -39,6 +39,7 @@ function parseCsv(text: string): Row[] {
         .map((cols) => {
             const email = cols.find((c) => c.includes('@')) ?? '';
             const rest = cols.filter((c) => c !== email);
+
             return {
                 name: rest[0] ?? '',
                 class_group: rest[1] ?? '',

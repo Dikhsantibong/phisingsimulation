@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import Swal from 'sweetalert2';
 import { Search, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,7 +61,10 @@ const behaviorVariant: Record<
 const ALL = 'all';
 
 function fmt(iso: string | null): string {
-    if (!iso) return '—';
+    if (!iso) {
+return '—';
+}
+
     return new Date(iso).toLocaleString('id-ID', {
         dateStyle: 'short',
         timeStyle: 'short',
@@ -103,10 +106,11 @@ export default function RespondentsIndex({
                                 className="pl-8"
                                 defaultValue={filters.search ?? ''}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter')
-                                        applyFilter({
+                                    if (e.key === 'Enter') {
+applyFilter({
                                             search: e.currentTarget.value,
                                         });
+}
                                 }}
                             />
                         </div>

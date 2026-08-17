@@ -1,11 +1,11 @@
 import { Head, router } from '@inertiajs/react';
 import { GraduationCap, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { store } from '@/actions/App/Http/Controllers/Simulation/PortalBehaviorController';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/actions/App/Http/Controllers/Simulation/PortalBehaviorController';
 
 type Props = {
     token: string;
@@ -22,6 +22,7 @@ export default function Portal({ token }: Props) {
         if (submitted.current) {
             return;
         }
+
         submitted.current = true;
         setProcessing(true);
 
