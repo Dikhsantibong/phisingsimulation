@@ -47,7 +47,7 @@ class DataExportController extends Controller
 
         return response()->streamDownload(function () use ($headers, $anonymise) {
             $out = fopen('php://output', 'w');
-            
+
             if ($out === false) {
                 return;
             }

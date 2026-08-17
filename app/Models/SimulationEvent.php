@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BehaviorStatus;
 use App\Enums\DeviceType;
+use Carbon\CarbonImmutable;
 use Database\Factories\SimulationEventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,9 +15,9 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $respondent_id
- * @property \Illuminate\Support\Carbon|\Carbon\CarbonImmutable|null $sent_at
- * @property \Illuminate\Support\Carbon|\Carbon\CarbonImmutable|null $first_access_at
- * @property \Illuminate\Support\Carbon|\Carbon\CarbonImmutable|null $response_at
+ * @property Carbon|CarbonImmutable|null $sent_at
+ * @property Carbon|CarbonImmutable|null $first_access_at
+ * @property Carbon|CarbonImmutable|null $response_at
  * @property BehaviorStatus $behavior_status
  * @property bool $keystroke_detected
  * @property DeviceType|null $device_type
