@@ -47,6 +47,11 @@ class DataExportController extends Controller
 
         return response()->streamDownload(function () use ($headers, $anonymise) {
             $out = fopen('php://output', 'w');
+            
+            if ($out === false) {
+                return;
+            }
+
             // UTF-8 BOM so Excel opens the file with correct encoding.
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, $headers);
@@ -74,11 +79,11 @@ class DataExportController extends Controller
         $event = $respondent->simulationEvent;
         $result = $respondent->questionnaireResult;
 
-        $secondsToClick = ($event?->sent_at && $event?->first_access_at)
+        $secondsToClick = ($event && $event->sent_at && $event->first_access_at)
             ? $event->first_access_at->diffInSeconds($event->sent_at)
             : null;
 
-        $secondsToRespond = ($event?->first_access_at && $event?->response_at)
+        $secondsToRespond = ($event && $event->first_access_at && $event->response_at)
             ? $event->response_at->diffInSeconds($event->first_access_at)
             : null;
 

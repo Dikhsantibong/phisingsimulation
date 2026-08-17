@@ -10,10 +10,13 @@ use Inertia\Inertia;
 
 class SimulationAccessController extends Controller
 {
+    use Illuminate\Http\RedirectResponse;
+    use Inertia\Response;
+
     /**
      * Handle a click on the simulation link: record access and show the fake portal.
      */
-    public function show(Request $request, Respondent $respondent, SimulationRecorder $recorder)
+    public function show(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse|Response
     {
         $recorder->recordAccess($respondent, $request);
 
