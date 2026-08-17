@@ -6,6 +6,7 @@ use App\Enums\BehaviorStatus;
 use App\Enums\RespondentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Respondent;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -59,7 +60,7 @@ class RespondentController extends Controller
     /**
      * Delete a respondent from the database.
      */
-    public function destroy(Respondent $respondent): \Illuminate\Http\RedirectResponse
+    public function destroy(Respondent $respondent): RedirectResponse
     {
         $respondent->delete();
 

@@ -27,7 +27,7 @@ class PortalBehaviorController extends Controller
             'kelas' => ['nullable', 'string', 'max:255'],
         ]);
 
-        if (!empty($validated['kelas'])) {
+        if (! empty($validated['kelas'])) {
             $respondent->update(['class_group' => $validated['kelas']]);
         }
 

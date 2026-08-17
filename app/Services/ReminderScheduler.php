@@ -38,14 +38,14 @@ class ReminderScheduler
             ->where(function ($q) use ($defaultThreshold) {
                 $q->where(function ($sq) {
                     $sq->whereNotNull('expires_at')
-                       ->where('expires_at', '<=', now());
+                        ->where('expires_at', '<=', now());
                 })
-                ->orWhere(function ($sq) use ($defaultThreshold) {
-                    $sq->whereNull('expires_at')
-                       ->whereHas('simulationEvent', function ($ssq) use ($defaultThreshold) {
-                           $ssq->where('sent_at', '<=', $defaultThreshold);
-                       });
-                });
+                    ->orWhere(function ($sq) use ($defaultThreshold) {
+                        $sq->whereNull('expires_at')
+                            ->whereHas('simulationEvent', function ($ssq) use ($defaultThreshold) {
+                                $ssq->where('sent_at', '<=', $defaultThreshold);
+                            });
+                    });
             })
             ->whereHas('simulationEvent', function ($query) {
                 $query->whereNull('first_access_at');
@@ -74,14 +74,16 @@ class ReminderScheduler
 
         foreach ($respondents as $respondent) {
             $event = $respondent->simulationEvent;
-            if (!$event || !$event->response_at) continue;
+            if (! $event || ! $event->response_at) {
+                continue;
+            }
 
             $shouldQueue = false;
 
             if ($respondent->expires_at && $event->sent_at) {
                 // Time limit was configured. Get original duration in minutes
                 $originalDuration = $event->sent_at->diffInMinutes($respondent->expires_at);
-                
+
                 if ($originalDuration >= 60) {
                     // Jika batas waktu responnya sekam ke atas, set 10 menit sesudah beraksi di portal
                     $thresholdTime = clone $event->response_at;
@@ -91,7 +93,7 @@ class ReminderScheduler
                     $thresholdTime = clone $event->response_at;
                     $thresholdTime->addMinutes($originalDuration);
                 }
-                
+
                 if (now()->greaterThanOrEqualTo($thresholdTime)) {
                     $shouldQueue = true;
                 }

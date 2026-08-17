@@ -33,7 +33,7 @@ class SendSimulationController extends Controller
         $rows = $data['respondents'];
 
         $expiresAt = null;
-        if (!empty($data['time_limit_value'])) {
+        if (! empty($data['time_limit_value'])) {
             $value = (int) $data['time_limit_value'];
             $unit = $data['time_limit_unit'] ?? 'minutes';
             $expiresAt = $unit === 'hours' ? now()->addHours($value) : now()->addMinutes($value);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Researcher\ReminderController;
 use App\Http\Controllers\Researcher\ResearchKeyController;
 use App\Http\Controllers\Researcher\RespondentController;
 use App\Http\Controllers\Researcher\SendSimulationController;
+use App\Http\Controllers\Researcher\SendWAReminderController;
 use App\Http\Controllers\Simulation\PortalBehaviorController;
 use App\Http\Controllers\Simulation\SimulationAccessController;
 use App\Http\Controllers\Webhooks\TallyWebhookController;
@@ -54,7 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
     Route::put('reminders/{reminder}/followed-up', [ReminderController::class, 'markFollowedUp'])->name('reminders.followed-up');
-    Route::post('reminders/{reminder}/wa', \App\Http\Controllers\Researcher\SendWAReminderController::class)->name('reminders.wa');
+    Route::post('reminders/{reminder}/wa', SendWAReminderController::class)->name('reminders.wa');
 
     Route::get('export', [DataExportController::class, 'index'])->name('export.index');
     Route::get('export/download', [DataExportController::class, 'download'])->name('export.download');

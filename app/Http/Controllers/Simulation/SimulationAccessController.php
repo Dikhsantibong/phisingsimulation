@@ -7,7 +7,6 @@ use App\Models\Respondent;
 use App\Services\SimulationRecorder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class SimulationAccessController extends Controller
 {
@@ -20,6 +19,7 @@ class SimulationAccessController extends Controller
 
         if ($request->query('action') === 'reject') {
             $recorder->recordBehavior($respondent, 'report', false);
+
             return redirect()->route('simulation.reveal', ['respondent' => $respondent->session_token]);
         }
 
