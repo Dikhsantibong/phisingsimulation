@@ -37,6 +37,7 @@ jobs:
           DB_DATABASE: database/database.sqlite
         run: |
           touch database/database.sqlite
+          rm -f package-lock.json
           composer setup
 
       - name: Run CI Checks
