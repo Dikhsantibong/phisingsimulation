@@ -40,6 +40,7 @@ class SendSimulationController extends Controller
         }
 
         $respondents = DB::transaction(function () use ($rows, $expiresAt) {
+            /** @var array<int, array{name?: string, class_group?: string, email: string, whatsapp_number?: string}> $rows */
             return collect($rows)->map(fn (array $row) => Respondent::create([
                 'name' => $row['name'] ?? null,
                 'class_group' => $row['class_group'] ?? 'Default',

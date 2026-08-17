@@ -72,7 +72,7 @@ class DataExportController extends Controller
     /**
      * Flatten one respondent (+ related data) into a CSV row.
      *
-     * @return array<int, string|int|null>
+     * @return array<int, string|int|float|bool|false|null>
      */
     private function row(Respondent $respondent, bool $anonymise): array
     {
