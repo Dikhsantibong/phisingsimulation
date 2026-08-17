@@ -5,14 +5,13 @@ namespace App\Http\Controllers\Simulation;
 use App\Http\Controllers\Controller;
 use App\Models\Respondent;
 use App\Services\SimulationRecorder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SimulationAccessController extends Controller
 {
-    use Illuminate\Http\RedirectResponse;
-    use Inertia\Response;
-
     /**
      * Handle a click on the simulation link: record access and show the fake portal.
      */
