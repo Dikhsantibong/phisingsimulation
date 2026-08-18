@@ -138,6 +138,27 @@ export default function Reveal({
                 ) : (
                     <div className="animate-in duration-500 fade-in slide-in-from-bottom-4">
                         <header className="mb-8 border-b border-slate-200 pb-6 dark:border-slate-800">
+                            {isCompleted && (
+                                <div className="mb-8 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                                    <div className="flex flex-col items-center gap-4 p-5 sm:flex-row sm:p-6">
+                                        <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
+                                            <CheckCircle className="size-8" />
+                                        </div>
+                                        <div className="text-center sm:text-left">
+                                            <h2 className="text-lg font-bold text-emerald-800 dark:text-emerald-300">
+                                                🎉 Terima Kasih! Simulasi &
+                                                Kuesioner Selesai
+                                            </h2>
+                                            <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+                                                Data Anda telah masuk ke dalam
+                                                sistem. Jawaban Anda sangat
+                                                berarti bagi penelitian ini.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <span className="mb-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
                                 Simulasi selesai · debrief & materi
                             </span>
@@ -334,14 +355,9 @@ export default function Reveal({
                         </div>
 
                         <div className="mt-12 flex flex-col items-center border-t border-slate-200 pt-8 dark:border-slate-800">
-                            <p className="mb-6 text-center text-slate-600 dark:text-slate-400">
-                                Terima kasih atas partisipasi Anda — kesadaran
-                                phishing membuat internet lebih aman.
-                            </p>
-
-                            <p className="text-center font-semibold text-slate-800 dark:text-slate-200">
-                                Simulasi dan kuesioner telah selesai. Anda dapat
-                                menutup halaman ini.
+                            <p className="text-center text-slate-600 dark:text-slate-400">
+                                Kesadaran phishing membuat internet lebih aman.
+                                Silakan tutup halaman ini.
                             </p>
                         </div>
                     </div>
