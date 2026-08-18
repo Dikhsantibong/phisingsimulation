@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use App\Models\User;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -34,15 +37,15 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         Fortify::authenticateUsing(function (Request $request) {
-            $user = \App\Models\User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
-            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            if ($user && Hash::check($request->password, $user->password)) {
                 
                 // If research_key_hash is configured, the user must provide a matching research_key
                 if (!empty($user->research_key_hash)) {
-                    if (!$request->filled('research_key') || !\Illuminate\Support\Facades\Hash::check($request->research_key, $user->research_key_hash)) {
+                    if (!$request->filled('research_key') || !Hash::check($request->research_key, $user->research_key_hash)) {
                         // We throw a ValidationException to easily return the error to the frontend 'research_key' field.
-                        throw \Illuminate\Validation\ValidationException::withMessages([
+                        throw ValidationException::withMessages([
                             'research_key' => 'Research key tidak valid.',
                         ]);
                     }

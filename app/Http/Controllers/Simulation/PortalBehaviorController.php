@@ -20,7 +20,6 @@ class PortalBehaviorController extends Controller
      */
     public function store(Request $request, Respondent $respondent, SimulationRecorder $recorder): RedirectResponse|\Illuminate\Http\Response
     {
-
         $validated = $request->validate([
             'action' => ['required', 'in:submit,report,reject'],
             'keystroke_detected' => ['required', 'boolean'],
