@@ -1,6 +1,5 @@
 import { Head } from '@inertiajs/react';
 import {
-    BookOpen,
     ShieldAlert,
     BadgeInfo,
     AlertTriangle,
@@ -17,20 +16,24 @@ type Props = {
     questionnaireUrl?: string | null;
 };
 
-export default function Reveal({ behavior_status, isCompleted, questionnaireUrl }: Props) {
+export default function Reveal({
+    behavior_status,
+    isCompleted,
+    questionnaireUrl,
+}: Props) {
     const [showEdu, setShowEdu] = useState(isCompleted ? true : false);
-    const [countdown, setCountdown] = useState<number | null>(null);
+    const [countdown, setCountdown] = useState<number | null>(
+        !isCompleted && questionnaireUrl ? 8 : null,
+    );
 
     useEffect(() => {
-        if (!isCompleted && questionnaireUrl) {
-            setCountdown(8); // Wait 8 seconds before redirecting
+        if (countdown === null) {
+            return;
         }
-    }, [isCompleted, questionnaireUrl]);
 
-    useEffect(() => {
-        if (countdown === null) return;
         if (countdown <= 0) {
-            window.location.href = questionnaireUrl!;
+            window.location.href = questionnaireUrl as string;
+
             return;
         }
 
@@ -110,9 +113,10 @@ export default function Reveal({ behavior_status, isCompleted, questionnaireUrl 
                         <div className="mb-8 text-left">{resultBox}</div>
 
                         {countdown !== null ? (
-                            <div className="rounded-lg bg-blue-50 p-4 text-center border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-center dark:border-blue-800 dark:bg-blue-900/20">
                                 <p className="mb-2 font-medium text-blue-800 dark:text-blue-300">
-                                    Anda akan dialihkan secara otomatis ke Kuesioner Penelitian dalam:
+                                    Anda akan dialihkan secara otomatis ke
+                                    Kuesioner Penelitian dalam:
                                 </p>
                                 <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                                     {countdown} detik
@@ -335,8 +339,9 @@ export default function Reveal({ behavior_status, isCompleted, questionnaireUrl 
                                 phishing membuat internet lebih aman.
                             </p>
 
-                            <p className="font-semibold text-center text-slate-800 dark:text-slate-200">
-                                Simulasi dan kuesioner telah selesai. Anda dapat menutup halaman ini.
+                            <p className="text-center font-semibold text-slate-800 dark:text-slate-200">
+                                Simulasi dan kuesioner telah selesai. Anda dapat
+                                menutup halaman ini.
                             </p>
                         </div>
                     </div>

@@ -72,14 +72,18 @@ export default function Login({ status, canResetPassword }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="research_key">Research Key</Label>
+                                <Label htmlFor="research_key">
+                                    Research Key
+                                </Label>
                                 <PasswordInput
                                     id="research_key"
                                     name="research_key"
                                     tabIndex={3}
                                     placeholder="Enter your research key (if configured)"
                                 />
-                                <InputError message={errors.research_key as string} />
+                                <InputError
+                                    message={errors.research_key as string}
+                                />
                             </div>
 
                             <div className="flex items-center space-x-3">
