@@ -16,13 +16,6 @@
       "_utils-CCDJ05Ll.js"
     ]
   },
-  "_book-open-BhfcY4KJ.js": {
-    "file": "assets/book-open-BhfcY4KJ.js",
-    "name": "book-open",
-    "imports": [
-      "_createLucideIcon-CCT6gKO_.js"
-    ]
-  },
   "_button-Bbz9r60z.js": {
     "file": "assets/button-Bbz9r60z.js",
     "name": "button",
@@ -423,7 +416,7 @@
     "name": "wayfinder"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BtuJ1AEu.css",
+    "file": "assets/app-CsfObvxd.css",
     "name": "app",
     "names": [
       "app.css"
@@ -432,7 +425,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-D7dUdvMi.js",
+    "file": "assets/app-B9teo0d8.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -446,7 +439,6 @@
       "_es2015-Cw7AjYUK.js",
       "_respondents-CF7rSUxf.js",
       "_utils-CCDJ05Ll.js",
-      "_book-open-BhfcY4KJ.js",
       "_export-CNtl-E0T.js",
       "_send-simulation-Dp-AIT1u.js",
       "_users-CH2HaxU1.js",
@@ -517,7 +509,7 @@
     ]
   },
   "resources/js/pages/auth/login.tsx": {
-    "file": "assets/login-DUN9_uA4.js",
+    "file": "assets/login-32tLl8a1.js",
     "name": "login",
     "src": "resources/js/pages/auth/login.tsx",
     "isDynamicEntry": true,
@@ -640,7 +632,7 @@
     ]
   },
   "resources/js/pages/phishing/portal.tsx": {
-    "file": "assets/portal-0RJtP2I3.js",
+    "file": "assets/portal-DvTJQga8.js",
     "name": "portal",
     "src": "resources/js/pages/phishing/portal.tsx",
     "isDynamicEntry": true,
@@ -657,7 +649,7 @@
     ]
   },
   "resources/js/pages/phishing/reveal.tsx": {
-    "file": "assets/reveal-DPftzVRQ.js",
+    "file": "assets/reveal-DGQt5o8m.js",
     "name": "reveal",
     "src": "resources/js/pages/phishing/reveal.tsx",
     "isDynamicEntry": true,
@@ -665,7 +657,6 @@
       "_rolldown-runtime-CbXtAM7H.js",
       "_createLucideIcon-CCT6gKO_.js",
       "_button-Bbz9r60z.js",
-      "_book-open-BhfcY4KJ.js",
       "_shield-alert-DJRIl0r6.js"
     ]
   },

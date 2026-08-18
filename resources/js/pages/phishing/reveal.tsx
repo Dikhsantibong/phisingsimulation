@@ -6,18 +6,40 @@ import {
     AlertTriangle,
     CheckCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
 type Props = {
     token: string;
     behavior_status?: string;
     keystroke_detected?: boolean;
-    questionnaireUrl: string | null;
+    isCompleted?: boolean;
+    questionnaireUrl?: string | null;
 };
 
-export default function Reveal({ behavior_status, questionnaireUrl }: Props) {
-    const [showEdu, setShowEdu] = useState(false);
+export default function Reveal({ behavior_status, isCompleted, questionnaireUrl }: Props) {
+    const [showEdu, setShowEdu] = useState(isCompleted ? true : false);
+    const [countdown, setCountdown] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!isCompleted && questionnaireUrl) {
+            setCountdown(8); // Wait 8 seconds before redirecting
+        }
+    }, [isCompleted, questionnaireUrl]);
+
+    useEffect(() => {
+        if (countdown === null) return;
+        if (countdown <= 0) {
+            window.location.href = questionnaireUrl!;
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setCountdown(countdown - 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [countdown, questionnaireUrl]);
 
     let resultBox = null;
 
@@ -87,13 +109,27 @@ export default function Reveal({ behavior_status, questionnaireUrl }: Props) {
 
                         <div className="mb-8 text-left">{resultBox}</div>
 
-                        <Button
-                            onClick={() => setShowEdu(true)}
-                            size="lg"
-                            className="w-full bg-blue-600 hover:bg-blue-700"
-                        >
-                            Lihat Pembahasan Materi
-                        </Button>
+                        {countdown !== null ? (
+                            <div className="rounded-lg bg-blue-50 p-4 text-center border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                                <p className="mb-2 font-medium text-blue-800 dark:text-blue-300">
+                                    Anda akan dialihkan secara otomatis ke Kuesioner Penelitian dalam:
+                                </p>
+                                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                                    {countdown} detik
+                                </div>
+                                <p className="mt-3 text-xs text-blue-600/70 dark:text-blue-400/70">
+                                    Mohon tidak menutup halaman ini.
+                                </p>
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={() => setShowEdu(true)}
+                                size="lg"
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                            >
+                                Lihat Pembahasan Materi
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     <div className="animate-in duration-500 fade-in slide-in-from-bottom-4">
@@ -299,23 +335,9 @@ export default function Reveal({ behavior_status, questionnaireUrl }: Props) {
                                 phishing membuat internet lebih aman.
                             </p>
 
-                            {questionnaireUrl ? (
-                                <Button
-                                    asChild
-                                    size="lg"
-                                    className="w-full max-w-sm bg-blue-600 hover:bg-blue-700"
-                                >
-                                    <a href={questionnaireUrl}>
-                                        <BookOpen className="mr-2 size-4" />
-                                        Lanjut ke Kuesioner
-                                    </a>
-                                </Button>
-                            ) : (
-                                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-center text-sm text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
-                                    Tautan kuesioner belum dikonfigurasi.
-                                    Hubungi peneliti.
-                                </div>
-                            )}
+                            <p className="font-semibold text-center text-slate-800 dark:text-slate-200">
+                                Simulasi dan kuesioner telah selesai. Anda dapat menutup halaman ini.
+                            </p>
                         </div>
                     </div>
                 )}

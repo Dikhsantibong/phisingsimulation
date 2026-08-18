@@ -37,10 +37,27 @@ class PortalBehaviorController extends Controller
     }
 
     /**
+     * Redirect directly to the external questionnaire.
+     */
+    public function questionnaire(Respondent $respondent)
+    {
+        $tallyUrl = config('services.simulation.tally_url');
+        
+        if ($tallyUrl) {
+            $url = rtrim($tallyUrl, '?') . '?session_token=' . $respondent->session_token;
+            return Inertia::location($url);
+        }
+
+        // Fallback if no Tally URL is configured
+        return to_route('simulation.reveal', ['respondent' => $respondent->session_token]);
+    }
+
+    /**
      * Show the debrief / reveal page (mandatory before the questionnaire).
      */
-    public function reveal(Respondent $respondent): Response
+    public function reveal(Request $request, Respondent $respondent): Response
     {
+        $isCompleted = $request->query('completed') === 'true';
         $tallyUrl = config('services.simulation.tally_url');
 
         return Inertia::render('phishing/reveal', [
@@ -50,6 +67,7 @@ class PortalBehaviorController extends Controller
             'questionnaireUrl' => $tallyUrl
                 ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
                 : null,
+            'isCompleted' => $isCompleted,
         ]);
     }
 }

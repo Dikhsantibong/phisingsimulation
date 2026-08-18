@@ -27,6 +27,9 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::post('/s/{respondent:session_token}/behavior', [PortalBehaviorController::class, 'store'])
         ->name('simulation.behavior');
 
+    Route::get('/s/{respondent:session_token}/questionnaire', [PortalBehaviorController::class, 'questionnaire'])
+        ->name('simulation.questionnaire');
+
     Route::get('/s/{respondent:session_token}/reveal', [PortalBehaviorController::class, 'reveal'])
         ->name('simulation.reveal');
 });

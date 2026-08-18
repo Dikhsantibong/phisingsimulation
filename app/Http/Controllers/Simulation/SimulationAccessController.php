@@ -21,7 +21,6 @@ class SimulationAccessController extends Controller
 
         if ($request->query('action') === 'reject') {
             $recorder->recordBehavior($respondent, 'report', false);
-
             return redirect()->route('simulation.reveal', ['respondent' => $respondent->session_token]);
         }
 

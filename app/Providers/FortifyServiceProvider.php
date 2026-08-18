@@ -32,6 +32,27 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+
+            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                
+                // If research_key_hash is configured, the user must provide a matching research_key
+                if (!empty($user->research_key_hash)) {
+                    if (!$request->filled('research_key') || !\Illuminate\Support\Facades\Hash::check($request->research_key, $user->research_key_hash)) {
+                        // We throw a ValidationException to easily return the error to the frontend 'research_key' field.
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'research_key' => 'Research key tidak valid.',
+                        ]);
+                    }
+                }
+
+                return $user;
+            }
+
+            return null; // Let Fortify handle the standard email/password failure
+        });
     }
 
     /**
