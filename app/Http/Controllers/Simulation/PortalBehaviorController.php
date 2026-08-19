@@ -64,7 +64,7 @@ class PortalBehaviorController extends Controller
             'behavior_status' => $respondent->simulationEvent?->behavior_status?->value,
             'keystroke_detected' => (bool) $respondent->simulationEvent?->keystroke_detected,
             'questionnaireUrl' => $tallyUrl
-                ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
+                ? rtrim($tallyUrl, '?') . '?session_token=' . $respondent->session_token
                 : null,
             'isCompleted' => $isCompleted,
         ]);
