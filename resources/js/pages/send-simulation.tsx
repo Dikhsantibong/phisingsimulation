@@ -1,4 +1,4 @@
-import { Form, Head, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { KeyRound, Send, Trash2, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { store } from '@/actions/App/Http/Controllers/Researcher/SendSimulationController';
@@ -14,7 +14,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { update as updateResearchKey } from '@/routes/research-key';
 import { create as sendSimulationCreate } from '@/routes/send-simulation';
 
 type Row = {
