@@ -416,7 +416,7 @@
     "name": "wayfinder"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CsfObvxd.css",
+    "file": "assets/app-C31Q28V8.css",
     "name": "app",
     "names": [
       "app.css"
@@ -425,7 +425,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-B9teo0d8.js",
+    "file": "assets/app-BisyNfYV.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -649,7 +649,7 @@
     ]
   },
   "resources/js/pages/phishing/reveal.tsx": {
-    "file": "assets/reveal-DGQt5o8m.js",
+    "file": "assets/reveal-daHUCM3Z.js",
     "name": "reveal",
     "src": "resources/js/pages/phishing/reveal.tsx",
     "isDynamicEntry": true,

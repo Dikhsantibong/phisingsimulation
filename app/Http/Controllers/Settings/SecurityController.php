@@ -38,6 +38,7 @@ class SecurityController extends Controller
                     ->all()
                 : [],
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'hasResearchKey' => filled($request->user()->research_key_hash),
         ];
 
         if (Features::canManageTwoFactorAuthentication()) {

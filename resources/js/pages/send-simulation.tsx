@@ -106,68 +106,27 @@ export default function SendSimulation({ hasResearchKey }: Props) {
         <>
             <Head title="Kirim Simulasi" />
             <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4">
-                {/* Research key management */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <KeyRound className="size-4" /> Research Key
-                        </CardTitle>
-                        <CardDescription>
-                            {hasResearchKey
-                                ? 'Research key sudah diatur. Wajib dimasukkan setiap kali mengirim simulasi.'
-                                : 'Belum ada research key. Atur terlebih dahulu sebelum bisa mengirim simulasi.'}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Form
-                            {...updateResearchKey.form()}
-                            className="flex flex-col gap-3 sm:flex-row sm:items-end"
-                        >
-                            {({
-                                errors: keyErrors,
-                                processing: keyProcessing,
-                            }) => (
-                                <>
-                                    <div className="grid flex-1 gap-2">
-                                        <Label htmlFor="research_key">
-                                            {hasResearchKey
-                                                ? 'Research key baru'
-                                                : 'Research key'}
-                                        </Label>
-                                        <Input
-                                            id="research_key"
-                                            name="research_key"
-                                            type="password"
-                                            autoComplete="off"
-                                        />
-                                        <InputError
-                                            message={keyErrors.research_key}
-                                        />
-                                    </div>
-                                    <div className="grid flex-1 gap-2">
-                                        <Label htmlFor="research_key_confirmation">
-                                            Konfirmasi
-                                        </Label>
-                                        <Input
-                                            id="research_key_confirmation"
-                                            name="research_key_confirmation"
-                                            type="password"
-                                            autoComplete="off"
-                                        />
-                                    </div>
-                                    <Button
-                                        type="submit"
-                                        variant="secondary"
-                                        disabled={keyProcessing}
-                                    >
-                                        {keyProcessing && <Spinner />}
-                                        Simpan
-                                    </Button>
-                                </>
-                            )}
-                        </Form>
-                    </CardContent>
-                </Card>
+                {/* Research key missing alert */}
+                {!hasResearchKey && (
+                    <Card className="border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-base text-red-800 dark:text-red-300">
+                                <KeyRound className="size-4" /> Perhatian:
+                                Research Key Belum Diatur
+                            </CardTitle>
+                            <CardDescription className="text-red-700 dark:text-red-400">
+                                Anda wajib mengatur Research Key melalui menu{' '}
+                                <a
+                                    href="/settings/security"
+                                    className="font-semibold underline"
+                                >
+                                    Pengaturan Keamanan
+                                </a>{' '}
+                                terlebih dahulu sebelum bisa memulai simulasi.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                )}
 
                 {/* Respondent list */}
                 <Card>

@@ -9,11 +9,15 @@ import type { Props as ManageTwoFactorProps } from '@/components/manage-two-fact
 import ManageTwoFactor from '@/components/manage-two-factor';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { edit } from '@/routes/security';
+import { update as updateResearchKey } from '@/routes/research-key';
 
 type Props = {
     passwordRules: string;
+    hasResearchKey: boolean;
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
@@ -116,6 +120,58 @@ export default function Security(props: Props) {
                                     data-test="update-password-button"
                                 >
                                     Save
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </Form>
+            </div>
+
+            <div className="space-y-6 border-t border-slate-200 pt-6 dark:border-slate-800">
+                <Heading
+                    variant="small"
+                    title="Research Key (Kunci Keamanan Simulasi)"
+                    description={
+                        props.hasResearchKey
+                            ? 'Research key sudah diatur. Anda dapat membuat yang baru jika diperlukan.'
+                            : 'Belum ada research key. Atur terlebih dahulu sebelum bisa menggunakan fitur ini.'
+                    }
+                />
+
+                <Form {...updateResearchKey.form()} className="space-y-6">
+                    {({ errors, processing }) => (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor="research_key">
+                                    {props.hasResearchKey
+                                        ? 'Research key baru'
+                                        : 'Research key'}
+                                </Label>
+                                <Input
+                                    id="research_key"
+                                    name="research_key"
+                                    type="password"
+                                    autoComplete="off"
+                                />
+                                <InputError message={errors.research_key} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="research_key_confirmation">
+                                    Konfirmasi
+                                </Label>
+                                <Input
+                                    id="research_key_confirmation"
+                                    name="research_key_confirmation"
+                                    type="password"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <Button type="submit" disabled={processing}>
+                                    {processing && <Spinner className="mr-2" />}
+                                    Simpan
                                 </Button>
                             </div>
                         </>
