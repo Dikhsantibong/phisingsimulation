@@ -198,7 +198,8 @@ Sistem telah di-scaffold penuh dan lulus verifikasi. Ringkasan yang sudah dibang
 - **Migrasi & tabel**: `respondents`, `simulation_events`, `reminder_logs` (+ kolom `followed_up_at` untuk tombol follow-up manual), `questionnaire_results`, dan kolom `research_key_hash` pada `users`.
 - **Model + factory + seeder**: relasi lengkap, `session_token` = UUID v7 via `HasUuids` (primary key `id` tetap auto-increment). `DatabaseSeeder` mengisi 1 peneliti (`test@example.com`, research key `rahasia-riset`) + data demo responden/behavior/kuesioner.
 - **Service**: `UserAgentParser` (device/os/browser tanpa dependensi, UA mentah tidak disimpan), `SimulationRecorder` (rekam akses + behavior, hash IP saat capture), `FonnteService` (WhatsApp ke peneliti), `ReminderScheduler` (jadwalkan reminder + cap N kali).
-- **Mail/Job/Command**: `SimulationPhishingMail` (markdown, subject "Peringatan Keamanan…"), `SendSimulationEmail` (queue), `SendReminderNotification` (queue, ke nomor peneliti), command `simulation:process-reminders` (dijadwalkan `hourly()` di `routes/console.php`).
+- **Mail/Job/Command**: `SimulationPhishingMail` (markdown, subject "Peringatan Keamanan…"), `SendSimulationEmail`, `SendReminderNotification` (ke nomor peneliti). Command `simulation:process-reminders` tetap ada untuk **run manual** (opsional), tapi **tidak lagi bergantung cron** — lihat mekanisme heartbeat di bawah.
+- **Reminder tanpa cron (heartbeat)**: middleware `ProcessDueReminders` (terdaftar di grup `web`, `bootstrap/app.php`) menjalankan `ReminderScheduler` pada `terminate()` — **setelah respons dikirim ke browser**, jadi tidak menambah latensi. Guard `Cache::add` (atomik) memastikan scan berjalan **maksimal sekali per interval** (`SIMULATION_REMINDER_INTERVAL_MINUTES`, default 1 menit) berapa pun jumlah trafik. Dikendalikan flag `SIMULATION_AUTO_REMINDERS` (default `true`).
 - **Controller & rute**:
   - Publik: `GET /s/{token}` (portal palsu, throttle 30/mnt), `POST /s/{token}/behavior`, `GET /s/{token}/reveal`.
   - Webhook: `POST /webhooks/tally` (dikecualikan CSRF via `preventRequestForgery`, idempoten per `tally_submission_id`, verifikasi HMAC signature bila secret diisi, kategorisasi K/A/B via prefix `k_`/`a_`/`b_`).
@@ -216,7 +217,7 @@ Sistem telah di-scaffold penuh dan lulus verifikasi. Ringkasan yang sudah dibang
 - Halaman debrief wajib sebelum kuesioner; rate limiting di endpoint klik.
 
 ### Verifikasi
-- **64 test PHPUnit lulus** (204 assertion): alur simulasi, mapping behavior, hash IP, webhook Tally (idempotensi + signature + kategorisasi), otorisasi research key, ekspor CSV + anonimisasi, penjadwalan reminder + cap.
+- **67 test PHPUnit lulus** (212 assertion): alur simulasi, mapping behavior, hash IP, webhook Tally (idempotensi + signature + kategorisasi), otorisasi research key, ekspor CSV + anonimisasi, penjadwalan reminder + cap, **serta heartbeat reminder berbasis trafik web (`ProcessDueReminders`)**.
 - `vendor/bin/pint` bersih, `tsc --noEmit` bersih.
 
 ### Penyimpangan/keputusan dari spec awal (perlu diketahui)
@@ -225,13 +226,14 @@ Sistem telah di-scaffold penuh dan lulus verifikasi. Ringkasan yang sudah dibang
 3. **Ekspor**: memakai **streamed CSV native** (`response()->streamDownload`) alih-alih `maatwebsite/excel`, agar tidak menambah dependensi. Sudah UTF-8 BOM (aman dibuka Excel) dan siap untuk notebook Random Forest.
 4. **Reminder**: sesuai desain, WhatsApp mengingatkan **peneliti** (bukan siswa langsung) — tidak ada tabel consent/opt-in nomor WA siswa.
 5. **Webhook Tally**: agar jawaban terpetakan ke kolom K/A/B, beri prefix field key `k_`/`a_`/`b_` (atau kata kunci pengetahuan/sikap/perilaku). Field tak terkategori tetap disimpan di `behavior_answers['_uncategorized']` (tidak ada data hilang).
+6. **Tanpa cron sama sekali** (untuk shared hosting): scheduler cron dihapus, diganti middleware heartbeat `ProcessDueReminders` (dipicu trafik web), dan `QUEUE_CONNECTION=sync` sehingga job (email simulasi & WA reminder) berjalan **inline** tanpa queue worker. Konsekuensi: (a) reminder hanya berjalan saat ada kunjungan web — cukup untuk studi yang aktif; (b) mengirim ke banyak responden sekaligus berjalan sinkron saat request, jadi untuk batch besar kirim per-kelas/bertahap. Bila server punya cron & worker, Anda tetap bisa kembali ke pola lama (aktifkan `QUEUE_CONNECTION=database` + `queue:work`, dan set `SIMULATION_AUTO_REMINDERS=false` lalu jadwalkan `simulation:process-reminders`).
 
 ### Konfigurasi yang perlu diisi sebelum produksi (`.env`)
-`FONNTE_TOKEN`, `FONNTE_RESEARCHER_NUMBER`, `SIMULATION_TALLY_URL`, `SIMULATION_TALLY_SIGNING_SECRET`, kredensial `MAIL_*`. Lihat `.env.example` untuk daftar lengkap + threshold reminder.
+`FONNTE_TOKEN`, `FONNTE_RESEARCHER_NUMBER`, `SIMULATION_TALLY_URL`, `SIMULATION_TALLY_SIGNING_SECRET`, kredensial `MAIL_*`. Biarkan `QUEUE_CONNECTION=sync`, `SIMULATION_AUTO_REMINDERS=true`, `SIMULATION_REMINDER_INTERVAL_MINUTES=1` untuk mode tanpa cron. Lihat `.env.example` untuk daftar lengkap.
 
 ### Cara menjalankan
 ```bash
-composer run dev      # serve + queue worker + vite (dev)
+composer run dev      # serve + vite (dev)
 php artisan db:seed   # data demo + akun peneliti
-php artisan schedule:work   # agar reminder terjadwal berjalan
 ```
+Tidak perlu `schedule:work` maupun `queue:work` — reminder dipicu trafik web (middleware `ProcessDueReminders`) dan job berjalan inline (`QUEUE_CONNECTION=sync`). Untuk memicu reminder manual kapan pun: `php artisan simulation:process-reminders`.

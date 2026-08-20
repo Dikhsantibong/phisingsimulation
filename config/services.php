@@ -65,6 +65,11 @@ return [
         'ignored_after_hours' => (int) env('SIMULATION_IGNORED_AFTER_HOURS', 24),
         'questionnaire_after_hours' => (int) env('SIMULATION_QUESTIONNAIRE_AFTER_HOURS', 24),
         'max_reminders' => (int) env('SIMULATION_MAX_REMINDERS', 3),
+
+        // Cron-less reminder heartbeat: the ProcessDueReminders middleware runs
+        // the reminder scan on web traffic, at most once per interval below.
+        'auto_reminders_enabled' => (bool) env('SIMULATION_AUTO_REMINDERS', true),
+        'reminder_run_interval_minutes' => (int) env('SIMULATION_REMINDER_INTERVAL_MINUTES', 1),
     ],
 
 ];

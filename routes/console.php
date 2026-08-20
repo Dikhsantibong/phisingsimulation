@@ -2,10 +2,11 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('simulation:process-reminders')->everyMinute();
+// NOTE: Reminders no longer depend on a server cron. They are triggered by the
+// ProcessDueReminders middleware on ordinary web traffic (see bootstrap/app.php).
+// The `simulation:process-reminders` command still exists for manual runs.

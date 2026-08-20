@@ -5,4 +5,5 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | resources/js/** | .ai/rules/js.md |
+| app/Http/Middleware/ProcessDueReminders.php | .ai/rules/middleware.md |
 | app/Http/Controllers/Simulation/** | .ai/rules/simulation.md |
