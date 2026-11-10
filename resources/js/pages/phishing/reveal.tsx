@@ -8,18 +8,26 @@ import {
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
+type ThemeContent = {
+    org_name: string;
+    warning_note: string;
+    scenario_summary: string;
+};
+
 type Props = {
     token: string;
     behavior_status?: string;
     keystroke_detected?: boolean;
     isCompleted?: boolean;
     questionnaireUrl?: string | null;
+    content: ThemeContent;
 };
 
 export default function Reveal({
     behavior_status,
     isCompleted,
     questionnaireUrl,
+    content,
 }: Props) {
     const [showEdu, setShowEdu] = useState(isCompleted ? true : false);
     const [countdown, setCountdown] = useState<number | null>(
@@ -182,16 +190,16 @@ export default function Reveal({
                                             <strong className="text-slate-900 dark:text-slate-200">
                                                 Penyamaran institusi
                                             </strong>{' '}
-                                            — email meniru Pusat Layanan
-                                            Pembelajaran Digital dengan
-                                            peringatan login tidak biasa.
+                                            — {content.scenario_summary}
                                         </li>
                                         <li>
                                             <strong className="text-slate-900 dark:text-slate-200">
                                                 Domain & urgensi
                                             </strong>{' '}
-                                            — tautan ke alamat palsu dan ancaman
-                                            akun dinonaktifkan dalam 24 jam.
+                                            — tautan ke alamat palsu dan
+                                            ancaman: &ldquo;
+                                            {content.warning_note}
+                                            &rdquo;
                                         </li>
                                         <li>
                                             <strong className="text-slate-900 dark:text-slate-200">

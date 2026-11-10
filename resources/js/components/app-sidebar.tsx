@@ -5,6 +5,7 @@ import {
     Send,
     BellRing,
     Users,
+    Megaphone,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -19,6 +20,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as campaignsIndex } from '@/routes/campaigns';
 import { index as exportIndex } from '@/routes/export';
 import { index as remindersIndex } from '@/routes/reminders';
 import { index as respondentsIndex } from '@/routes/respondents';
@@ -30,6 +32,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Kampanye',
+        href: campaignsIndex(),
+        icon: Megaphone,
     },
     {
         title: 'Kirim Simulasi',

@@ -7,16 +7,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
-type Props = {
-    token: string;
+type ThemeContent = {
+    portal_title: string;
+    portal_subtitle: string;
+    id_field_label: string;
+    cta_primary_label: string;
+    cta_secondary_label: string;
 };
 
-export default function Portal({ token }: Props) {
+type Props = {
+    token: string;
+    content: ThemeContent;
+};
+
+export default function Portal({ token, content }: Props) {
     const [keystrokeDetected, setKeystrokeDetected] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [kelas, setKelas] = useState('');
+    const [idLocked, setIdLocked] = useState(true);
+    const [kelasLocked, setKelasLocked] = useState(true);
+    const [passwordLocked, setPasswordLocked] = useState(true);
     const submitted = useRef(false);
+
+    // Browser/password-manager autofill never dispatches real keyboard
+    // events, only a synthetic `input`/`change` — so only onKeyDown counts
+    // as "the respondent actually typed something" here.
+    const markKeystroke = () => setKeystrokeDetected(true);
 
     const respond = (action: 'submit' | 'report' | 'reject') => {
         if (submitted.current) {
@@ -34,42 +51,45 @@ export default function Portal({ token }: Props) {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-blue-50/50 p-4 dark:bg-slate-950">
-            <Head title="Portal Pembelajaran Digital" />
+        <div className="flex min-h-screen items-center justify-center bg-blue-50/50 p-3 sm:p-4 dark:bg-slate-950">
+            <Head title={content.portal_title} />
 
-            <div className="w-full max-w-md rounded-2xl border border-blue-100 bg-white p-8 shadow-lg shadow-blue-100/40 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
+            <div className="w-full max-w-md rounded-2xl border border-blue-100 bg-white p-6 shadow-lg shadow-blue-100/40 sm:p-8 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
                 <div className="mb-6 flex flex-col items-center text-center">
                     <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
                         <GraduationCap className="size-8" />
                     </div>
-                    <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                        Sistem Pembelajaran Digital
+                    <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl dark:text-slate-50">
+                        {content.portal_title}
                     </h1>
                     <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-                        Masuk untuk memverifikasi identitas Anda
+                        {content.portal_subtitle}
                     </p>
                 </div>
 
                 <form
                     className="flex flex-col gap-4"
+                    autoComplete="off"
                     onSubmit={(e) => {
                         e.preventDefault();
                         respond('submit');
                     }}
-                    onInput={() => setKeystrokeDetected(true)}
                 >
                     <div className="grid gap-2">
                         <Label
                             htmlFor="email"
                             className="text-slate-700 dark:text-slate-300"
                         >
-                            Email atau NIS
+                            {content.id_field_label}
                         </Label>
                         <Input
                             id="email"
-                            name="email"
+                            name="id_field_x9k"
                             type="text"
                             autoComplete="off"
+                            readOnly={idLocked}
+                            onFocus={() => setIdLocked(false)}
+                            onKeyDown={markKeystroke}
                             required
                             placeholder="nama@sekolah.sch.id"
                             className="border-blue-200 focus-visible:ring-blue-600 dark:border-slate-700"
@@ -85,9 +105,12 @@ export default function Portal({ token }: Props) {
                         </Label>
                         <Input
                             id="kelas"
-                            name="kelas"
+                            name="kelas_field_x9k"
                             type="text"
                             autoComplete="off"
+                            readOnly={kelasLocked}
+                            onFocus={() => setKelasLocked(false)}
+                            onKeyDown={markKeystroke}
                             required
                             placeholder="Contoh: X IPA 1"
                             value={kelas}
@@ -106,9 +129,15 @@ export default function Portal({ token }: Props) {
                         <div className="relative">
                             <Input
                                 id="password"
+                                name="pw_field_x9k"
                                 type={showPassword ? 'text' : 'password'}
                                 required
-                                autoComplete="off"
+                                autoComplete="new-password"
+                                readOnly={passwordLocked}
+                                onFocus={() => setPasswordLocked(false)}
+                                onKeyDown={markKeystroke}
+                                data-lpignore="true"
+                                data-1p-ignore="true"
                                 placeholder="••••••••"
                                 className="border-blue-200 pr-10 focus-visible:ring-blue-600 dark:border-slate-700"
                             />
@@ -133,7 +162,7 @@ export default function Portal({ token }: Props) {
                             disabled={processing}
                         >
                             {processing && <Spinner className="mr-2" />}
-                            Verifikasi Akun
+                            {content.cta_primary_label}
                         </Button>
 
                         <Button
@@ -143,7 +172,7 @@ export default function Portal({ token }: Props) {
                             disabled={processing}
                             className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
-                            Tolak Aktivitas Ini
+                            {content.cta_secondary_label}
                         </Button>
                     </div>
                 </form>

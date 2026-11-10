@@ -53,7 +53,7 @@ class SimulationRecorder
     /**
      * Record the final response from the fake portal.
      *
-     * @param  'submit'|'report'  $action  What the respondent did.
+     * @param  'submit'|'report'|'reject'  $action  What the respondent did.
      * @param  bool  $keystrokeDetected  Whether any text input occurred (never the text itself).
      */
     public function recordBehavior(Respondent $respondent, string $action, bool $keystrokeDetected): SimulationEvent
@@ -70,6 +70,7 @@ class SimulationRecorder
         $event = $respondent->simulationEvent()->firstOrNew([]);
         $event->fill([
             'behavior_status' => $behavior,
+            'last_action' => $action,
             'keystroke_detected' => $keystrokeDetected,
             'response_at' => now(),
         ]);

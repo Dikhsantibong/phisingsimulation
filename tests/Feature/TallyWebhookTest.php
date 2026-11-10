@@ -50,6 +50,71 @@ class TallyWebhookTest extends TestCase
         $this->assertSame(RespondentStatus::Finished, $respondent->fresh()->status);
     }
 
+    public function test_the_kelas_question_updates_the_respondents_class_group(): void
+    {
+        $respondent = Respondent::factory()->create(['class_group' => 'Default']);
+
+        $this->postJson(route('webhooks.tally'), $this->payload($respondent->session_token, 'sub_kelas', [
+            ['key' => '', 'label' => 'Kelas', 'value' => 'XII IPA 1'],
+        ]))->assertOk();
+
+        $this->assertSame('XII IPA 1', $respondent->fresh()->class_group);
+    }
+
+    public function test_short_keys_without_an_underscore_are_still_categorised(): void
+    {
+        $respondent = Respondent::factory()->create();
+
+        $this->postJson(route('webhooks.tally'), [
+            'eventId' => 'evt_2',
+            'data' => [
+                'submissionId' => 'sub_short_keys',
+                'fields' => [
+                    ['key' => 'session_token', 'label' => 'session_token', 'value' => $respondent->session_token],
+                    ['key' => 'K1', 'label' => 'Apa yang dimaksud dengan phishing?', 'value' => 'B'],
+                    ['key' => 'A1', 'label' => 'Seberapa yakin Anda bisa mengenali email phishing?', 'value' => 4],
+                    ['key' => 'B1', 'label' => 'Apa yang Anda lakukan saat menerima email mencurigakan?', 'value' => 'Melapor'],
+                ],
+            ],
+        ])->assertOk();
+
+        $result = $respondent->questionnaireResult()->first();
+        $this->assertSame('B', $result->knowledge_answers['K1']);
+        $this->assertSame(4, $result->attitude_answers['A1']);
+        $this->assertSame('Melapor', $result->behavior_answers['B1']);
+    }
+
+    public function test_multiple_choice_answers_are_resolved_from_option_id_to_option_text(): void
+    {
+        $respondent = Respondent::factory()->create();
+
+        $this->postJson(route('webhooks.tally'), [
+            'eventId' => 'evt_3',
+            'data' => [
+                'submissionId' => 'sub_mc',
+                'fields' => [
+                    ['key' => 'session_token', 'label' => 'session_token', 'value' => $respondent->session_token],
+                    [
+                        'key' => 'K1',
+                        'label' => 'Apa yang dimaksud dengan phishing?',
+                        'value' => ['opt-b'],
+                        'options' => [
+                            ['id' => 'opt-a', 'text' => 'Serangan virus komputer'],
+                            ['id' => 'opt-b', 'text' => 'Upaya penipuan untuk mencuri data pribadi dengan menyamar sebagai pihak terpercaya'],
+                            ['id' => 'opt-c', 'text' => 'Pembaruan software resmi'],
+                        ],
+                    ],
+                ],
+            ],
+        ])->assertOk();
+
+        $result = $respondent->questionnaireResult()->first();
+        $this->assertSame(
+            'Upaya penipuan untuk mencuri data pribadi dengan menyamar sebagai pihak terpercaya',
+            $result->knowledge_answers['K1'],
+        );
+    }
+
     public function test_webhook_is_idempotent_on_submission_id(): void
     {
         $respondent = Respondent::factory()->create();

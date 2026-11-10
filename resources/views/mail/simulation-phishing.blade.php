@@ -19,7 +19,7 @@
                         <td class="header" style="box-sizing: border-box; padding: 25px 0; text-align: center;">
                             <a href="#"
                                 style="box-sizing: border-box; color: #3d4852; font-size: 19px; font-weight: bold; text-decoration: none; display: inline-block;">
-                                Pusat Layanan Pembelajaran
+                                {{ $org_name }}
                             </a>
                         </td>
                     </tr>
@@ -36,7 +36,7 @@
                                         style="box-sizing: border-box; max-width: 100vw; padding: 32px;">
                                         <h1
                                             style="box-sizing: border-box; color: #3d4852; font-size: 18px; font-weight: bold; margin-top: 0; text-align: left;">
-                                            Sistem Pembelajaran Digital — Notifikasi Keamanan
+                                            {{ $org_name }} — Notifikasi Keamanan
                                         </h1>
 
                                         <p
@@ -46,8 +46,7 @@
 
                                         <p
                                             style="box-sizing: border-box; font-size: 16px; line-height: 1.5em; margin-top: 0; text-align: left; color: #718096;">
-                                            Sistem mendeteksi aktivitas login tidak biasa pada akun pembelajaran digital
-                                            Anda dari perangkat yang belum dikenali.
+                                            {{ $lead }}
                                         </p>
 
                                         <p
@@ -68,8 +67,7 @@
                                                             <td style="box-sizing: border-box;">
                                                                 <a href="{{ $accessUrl }}" target="_blank"
                                                                     rel="noopener"
-                                                                    style="box-sizing: border-box; border-radius: 4px; color: #fff; display: inline-block; overflow: hidden; text-decoration: none; background-color: #2d3748; border-bottom: 8px solid #2d3748; border-left: 18px solid #2d3748; border-right: 18px solid #2d3748; border-top: 8px solid #2d3748;">Verifikasi
-                                                                    Akun Sekarang</a>
+                                                                    style="box-sizing: border-box; border-radius: 4px; color: #fff; display: inline-block; overflow: hidden; text-decoration: none; background-color: #2d3748; border-bottom: 8px solid #2d3748; border-left: 18px solid #2d3748; border-right: 18px solid #2d3748; border-top: 8px solid #2d3748;">{{ $cta_primary_label }}</a>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -95,8 +93,7 @@
                                                             <td style="box-sizing: border-box;">
                                                                 <a href="{{ isset($rejectUrl) ? $rejectUrl : $accessUrl }}"
                                                                     target="_blank" rel="noopener"
-                                                                    style="box-sizing: border-box; border-radius: 4px; color: #fff; display: inline-block; overflow: hidden; text-decoration: none; background-color: #e53e3e; border-bottom: 8px solid #e53e3e; border-left: 18px solid #e53e3e; border-right: 18px solid #e53e3e; border-top: 8px solid #e53e3e;">Tolak
-                                                                    Aktivitas Ini</a>
+                                                                    style="box-sizing: border-box; border-radius: 4px; color: #fff; display: inline-block; overflow: hidden; text-decoration: none; background-color: #e53e3e; border-bottom: 8px solid #e53e3e; border-left: 18px solid #e53e3e; border-right: 18px solid #e53e3e; border-top: 8px solid #e53e3e;">{{ $cta_secondary_label }}</a>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -106,10 +103,7 @@
 
                                         <p
                                             style="box-sizing: border-box; font-size: 16px; line-height: 1.5em; margin-top: 0; text-align: left; color: #718096;">
-                                            Jika Anda tidak melakukan aktivitas ini, tetap lakukan verifikasi agar akun
-                                            Anda tidak dinonaktifkan dalam 24 jam. Apabila tidak ada tindakan dalam
-                                            beberapa waktu, akses akun pembelajaran Anda akan dinonaktifkan demi
-                                            keamanan sistem.
+                                            {{ $warning_note }}
                                         </p>
 
                                         <p
@@ -121,7 +115,7 @@
 
                                         <p
                                             style="box-sizing: border-box; font-size: 16px; line-height: 1.5em; margin-top: 0; text-align: left; color: #718096;">
-                                            Terima kasih,<br>Pusat Layanan Sistem Pembelajaran Digital
+                                            Terima kasih,<br>{{ $org_name }}
                                         </p>
 
                                     </td>
@@ -145,7 +139,7 @@
                                         </p>
                                         <p
                                             style="box-sizing: border-box; line-height: 1.5em; margin-top: 0; color: #b0adc5; font-size: 12px; text-align: center;">
-                                            © {{ date('Y') }} Sistem Pembelajaran Digital. All rights reserved.
+                                            © {{ date('Y') }} {{ $org_name }}. All rights reserved.
                                         </p>
                                     </td>
                                 </tr>

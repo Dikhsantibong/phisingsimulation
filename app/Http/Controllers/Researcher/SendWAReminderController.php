@@ -6,6 +6,7 @@ use App\Enums\ReminderType;
 use App\Http\Controllers\Controller;
 use App\Models\ReminderLog;
 use App\Services\FonnteService;
+use App\Support\SimulationThemeContent;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
@@ -32,14 +33,13 @@ class SendWAReminderController extends Controller
             }
 
             $url = route('simulation.access', ['respondent' => $respondent->session_token]);
+            $theme = SimulationThemeContent::for($respondent->effectiveTheme());
 
-            // Build the simulation message identical to the email (but plain text for WA)
-            $message = "*Pusat Layanan Pembelajaran*\n\n"
+            // Build the simulation message identical to the email/web (but plain text for WA)
+            $message = "*{$theme['org_name']}*\n\n"
                      .'Halo'.($respondent->name ? " {$respondent->name}" : '').",\n\n"
-                     .'Kami dari tim keamanan ingin memberitahukan bahwa terdapat upaya percobaan login atau '
-                     ."aktivitas mencurigakan pada akun pembelajaran digital Anda.\n\n"
-                     .'Tautan di bawah ini telah kami perpanjang waktu aksesnya. '
-                     ."Mohon segera masuk dan amankan data Anda.\n\n"
+                     ."{$theme['lead']}\n\n"
+                     ."{$theme['warning_note']}\n\n"
                      ."👉 {$url}\n\n";
         } else {
             // Questionnaire reminder

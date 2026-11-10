@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Simulation;
 
-use App\Http\Controllers\Controller;
 use App\Enums\RespondentStatus;
+use App\Http\Controllers\Controller;
 use App\Models\Respondent;
 use App\Services\SimulationRecorder;
+use App\Support\SimulationThemeContent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class PortalBehaviorController extends Controller
 {
@@ -39,16 +41,17 @@ class PortalBehaviorController extends Controller
     /**
      * Redirect directly to the external questionnaire.
      */
-    public function questionnaire(Respondent $respondent)
+    public function questionnaire(Respondent $respondent): SymfonyResponse
     {
         if ($respondent->status === RespondentStatus::CompletedQuestionnaire || $respondent->status === RespondentStatus::Finished) {
             return to_route('simulation.completed', ['respondent' => $respondent->session_token]);
         }
 
         $tallyUrl = config('services.simulation.tally_url');
-        
+
         if ($tallyUrl) {
-            $url = rtrim($tallyUrl, '?') . '?session_token=' . $respondent->session_token;
+            $url = rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token;
+
             return Inertia::location($url);
         }
 
@@ -75,9 +78,10 @@ class PortalBehaviorController extends Controller
             'behavior_status' => $respondent->simulationEvent?->behavior_status?->value,
             'keystroke_detected' => (bool) $respondent->simulationEvent?->keystroke_detected,
             'questionnaireUrl' => $tallyUrl
-                ? rtrim($tallyUrl, '?') . '?session_token=' . $respondent->session_token
+                ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
                 : null,
             'isCompleted' => $isCompleted,
+            'content' => SimulationThemeContent::for($respondent->effectiveTheme()),
         ]);
     }
 

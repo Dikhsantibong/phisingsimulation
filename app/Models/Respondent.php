@@ -3,32 +3,39 @@
 namespace App\Models;
 
 use App\Enums\RespondentStatus;
+use App\Enums\SendChannel;
+use App\Enums\SimulationTheme;
 use Database\Factories\RespondentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $campaign_id
  * @property string $session_token
- * @property string $class_group
+ * @property SimulationTheme|null $theme
+ * @property string|null $class_group
  * @property string|null $name
- * @property string $email
+ * @property string|null $email
  * @property string|null $whatsapp_number
+ * @property SendChannel|null $send_channel
  * @property RespondentStatus $status
  * @property Carbon|null $expires_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read SimulationCampaign|null $campaign
  * @property-read SimulationEvent|null $simulationEvent
  * @property-read QuestionnaireResult|null $questionnaireResult
  * @property-read Collection<int, ReminderLog> $reminderLogs
  */
-#[Fillable(['session_token', 'class_group', 'name', 'email', 'whatsapp_number', 'status', 'expires_at'])]
+#[Fillable(['campaign_id', 'session_token', 'theme', 'class_group', 'name', 'email', 'whatsapp_number', 'send_channel', 'status', 'expires_at'])]
 class Respondent extends Model
 {
     /** @use HasFactory<RespondentFactory> */
@@ -53,8 +60,28 @@ class Respondent extends Model
     {
         return [
             'status' => RespondentStatus::class,
+            'theme' => SimulationTheme::class,
+            'send_channel' => SendChannel::class,
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return BelongsTo<SimulationCampaign, $this>
+     */
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(SimulationCampaign::class, 'campaign_id');
+    }
+
+    /**
+     * The theme actually shown to this respondent: the one picked for them at
+     * creation time, falling back to the campaign's theme (for respondents
+     * created before multi-theme support) and finally to the default theme.
+     */
+    public function effectiveTheme(): SimulationTheme
+    {
+        return $this->theme ?? $this->campaign?->theme ?? SimulationTheme::Elearning;
     }
 
     /**

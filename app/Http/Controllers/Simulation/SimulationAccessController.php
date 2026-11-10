@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Simulation;
 
-use App\Http\Controllers\Controller;
 use App\Enums\RespondentStatus;
+use App\Http\Controllers\Controller;
 use App\Models\Respondent;
 use App\Services\SimulationRecorder;
+use App\Support\SimulationThemeContent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,6 +35,7 @@ class SimulationAccessController extends Controller
 
         return Inertia::render('phishing/portal', [
             'token' => $respondent->session_token,
+            'content' => SimulationThemeContent::for($respondent->effectiveTheme()),
         ]);
     }
 }

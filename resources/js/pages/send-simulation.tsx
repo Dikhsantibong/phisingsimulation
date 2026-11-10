@@ -16,15 +16,25 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { create as sendSimulationCreate } from '@/routes/send-simulation';
 
+type Channel = 'email' | 'whatsapp';
+
 type Row = {
     name: string;
     class_group: string;
+    channel: Channel;
     email: string;
     whatsapp_number: string;
 };
 
+type Campaign = {
+    id: number;
+    title: string;
+    theme_label: string;
+};
+
 type Props = {
     hasResearchKey: boolean;
+    campaigns: Campaign[];
 };
 
 /** Parse pasted/uploaded CSV: columns name, class_group, email, whatsapp_number. */
@@ -42,15 +52,19 @@ function parseCsv(text: string): Row[] {
             return {
                 name: rest[0] ?? '',
                 class_group: rest[1] ?? '',
+                channel: 'email' as Channel,
                 email,
                 whatsapp_number: rest[2] ?? '',
             };
         });
 }
 
-export default function SendSimulation({ hasResearchKey }: Props) {
+export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
     const [rows, setRows] = useState<Row[]>([]);
     const [researchKey, setResearchKey] = useState('');
+    const [campaignId, setCampaignId] = useState<string>(
+        campaigns[0] ? String(campaigns[0].id) : '',
+    );
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -63,10 +77,17 @@ export default function SendSimulation({ hasResearchKey }: Props) {
     const emptyRow: Row = {
         name: '',
         class_group: '',
+        channel: 'email',
         email: '',
         whatsapp_number: '',
     };
-    const validRows = useMemo(() => rows.filter((r) => r.email), [rows]);
+    const validRows = useMemo(
+        () =>
+            rows.filter((r) =>
+                r.channel === 'whatsapp' ? r.whatsapp_number : r.email,
+            ),
+        [rows],
+    );
 
     const handleFile = (file: File) => {
         const reader = new FileReader();
@@ -88,6 +109,7 @@ export default function SendSimulation({ hasResearchKey }: Props) {
             store.url(),
             {
                 research_key: researchKey,
+                campaign_id: campaignId ? Number(campaignId) : null,
                 respondents: validRows,
                 time_limit_value: timeLimitValue
                     ? Number(timeLimitValue)
@@ -126,6 +148,54 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                         </CardHeader>
                     </Card>
                 )}
+
+                {/* Campaign/theme selection */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">
+                            Tema Simulasi
+                        </CardTitle>
+                        <CardDescription>
+                            Pilih kampanye (tema pretext) yang akan dipakai
+                            untuk email/WA ke responden di bawah. Kelola daftar
+                            kampanye di menu{' '}
+                            <a
+                                href="/campaigns"
+                                className="font-semibold underline"
+                            >
+                                Kampanye
+                            </a>
+                            .
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {campaigns.length === 0 ? (
+                            <p className="text-sm text-amber-700 dark:text-amber-400">
+                                Belum ada kampanye bertipe "Email/WA Manual".
+                                Buat satu di menu Kampanye terlebih dahulu.
+                            </p>
+                        ) : (
+                            <div className="grid gap-2 sm:max-w-sm">
+                                <Label htmlFor="campaign_id">Kampanye</Label>
+                                <select
+                                    id="campaign_id"
+                                    value={campaignId}
+                                    onChange={(e) =>
+                                        setCampaignId(e.target.value)
+                                    }
+                                    className="rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+                                >
+                                    {campaigns.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.title} ({c.theme_label})
+                                        </option>
+                                    ))}
+                                </select>
+                                <InputError message={errors['campaign_id']} />
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Respondent list */}
                 <Card>
@@ -176,7 +246,10 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                                 Kelas
                                             </th>
                                             <th className="p-2 font-medium">
-                                                Email *
+                                                Kirim via
+                                            </th>
+                                            <th className="p-2 font-medium">
+                                                Email
                                             </th>
                                             <th className="p-2 font-medium">
                                                 No. WA
@@ -191,8 +264,6 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                                     [
                                                         'name',
                                                         'class_group',
-                                                        'email',
-                                                        'whatsapp_number',
                                                     ] as const
                                                 ).map((key) => (
                                                     <td
@@ -213,6 +284,62 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                                         />
                                                     </td>
                                                 ))}
+                                                <td className="p-1">
+                                                    <select
+                                                        value={row.channel}
+                                                        onChange={(e) =>
+                                                            updateRow(
+                                                                i,
+                                                                'channel',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
+                                                    >
+                                                        <option value="email">
+                                                            Email
+                                                        </option>
+                                                        <option value="whatsapp">
+                                                            WhatsApp
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td className="p-1">
+                                                    <Input
+                                                        value={row.email}
+                                                        onChange={(e) =>
+                                                            updateRow(
+                                                                i,
+                                                                'email',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            row.channel ===
+                                                            'whatsapp'
+                                                        }
+                                                        className="h-8"
+                                                    />
+                                                </td>
+                                                <td className="p-1">
+                                                    <Input
+                                                        value={
+                                                            row.whatsapp_number
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateRow(
+                                                                i,
+                                                                'whatsapp_number',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            row.channel ===
+                                                            'email'
+                                                        }
+                                                        className="h-8"
+                                                    />
+                                                </td>
                                                 <td className="p-1 text-right">
                                                     <Button
                                                         type="button"
@@ -319,7 +446,8 @@ export default function SendSimulation({ hasResearchKey }: Props) {
                                 disabled={
                                     processing ||
                                     !hasResearchKey ||
-                                    validRows.length === 0
+                                    validRows.length === 0 ||
+                                    !campaignId
                                 }
                             >
                                 {processing ? (

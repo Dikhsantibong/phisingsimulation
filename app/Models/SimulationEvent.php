@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|CarbonImmutable|null $first_access_at
  * @property Carbon|CarbonImmutable|null $response_at
  * @property BehaviorStatus $behavior_status
+ * @property string|null $last_action
  * @property bool $keystroke_detected
  * @property DeviceType|null $device_type
  * @property string|null $os_name
@@ -27,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property-read Respondent $respondent
  */
 #[Fillable([
-    'respondent_id', 'sent_at', 'first_access_at', 'response_at', 'behavior_status',
+    'respondent_id', 'sent_at', 'first_access_at', 'response_at', 'behavior_status', 'last_action',
     'keystroke_detected', 'device_type', 'os_name', 'browser_name', 'ip_hash',
 ])]
 class SimulationEvent extends Model

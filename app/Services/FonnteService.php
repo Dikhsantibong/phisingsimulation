@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Log;
 /**
  * Thin client for the Fonnte WhatsApp gateway.
  *
- * Reminders are sent to the researcher's own number so they can follow up
- * with respondents manually — the system never messages students directly.
+ * Used both to message respondents directly (initial simulation send via
+ * WhatsApp, and manual reminder follow-ups) and to notify the researcher's
+ * own number when a respondent needs following up.
  */
 class FonnteService
 {

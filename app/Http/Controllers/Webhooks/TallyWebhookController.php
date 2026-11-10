@@ -6,12 +6,15 @@ use App\Enums\CompletionStatus;
 use App\Enums\RespondentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Respondent;
+use App\Services\TallyAnswerCategoriser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class TallyWebhookController extends Controller
 {
+    public function __construct(private readonly TallyAnswerCategoriser $categoriser) {}
+
     /**
      * Receive a Tally form submission and link it back to a respondent.
      *
@@ -53,10 +56,17 @@ class TallyWebhookController extends Controller
             ]
         );
 
+        $classGroup = $this->categoriser->extractClassGroup(array_merge(
+            $this->categoriser->flattenBucket($buckets['knowledge']),
+            $this->categoriser->flattenBucket($buckets['attitude']),
+            $this->categoriser->flattenBucket($buckets['behavior']),
+        ));
+
         $respondent->update([
             'status' => $respondent->simulationEvent()->exists()
                 ? RespondentStatus::Finished
                 : RespondentStatus::CompletedQuestionnaire,
+            ...($classGroup !== null ? ['class_group' => $classGroup] : []),
         ]);
 
         return response()->json(['message' => 'ok']);
@@ -104,11 +114,13 @@ class TallyWebhookController extends Controller
     }
 
     /**
-     * Sort Tally fields into KAB buckets using key/label keyword prefixes.
+     * Sort Tally fields into KAB buckets using the short key the researcher
+     * set per question in Tally (e.g. "K1", "A_2", "B3").
      *
-     * Convention: prefix field keys with k_/a_/b_ (or include the words
-     * pengetahuan/knowledge, sikap/attitude, perilaku/behavior). Anything that
-     * cannot be categorised is preserved under behavior['_uncategorized'].
+     * Convention: key starts with k/a/b immediately followed by a digit or an
+     * underscore (K1, K_1, ...), or the key/label contains a full keyword
+     * (pengetahuan/knowledge, sikap/attitude, perilaku/behavior). Anything
+     * that cannot be categorised is preserved under behavior['_uncategorized'].
      *
      * @param  array<int, array<string, mixed>>  $fields
      * @return array{knowledge: array<string, mixed>, attitude: array<string, mixed>, behavior: array<string, mixed>}
@@ -120,33 +132,65 @@ class TallyWebhookController extends Controller
         foreach ($fields as $field) {
             $keyText = (string) ($field['key'] ?? '');
             $labelText = (string) ($field['label'] ?? '');
-            
-            $keyRaw = $labelText !== '' ? $labelText : $keyText;
-            
-            $normalisedKey = Str::lower($keyText);
-            $normalisedLabel = Str::lower($labelText);
-            $value = $field['value'] ?? null;
 
-            if (Str::contains($normalisedKey, 'session_token') || $normalisedKey === 'token' || Str::contains($normalisedLabel, 'session_token') || $normalisedLabel === 'token') {
+            // The short key researchers set in Tally (e.g. "K1") is the
+            // column name we want in the dataset; the label is usually the
+            // full (long) question text and only used as a fallback.
+            $storageKey = $keyText !== '' ? $keyText : $labelText;
+
+            $value = $this->resolveFieldValue($field);
+
+            if ($this->categoriser->isMeta($keyText) || $this->categoriser->isMeta($labelText)) {
                 continue;
             }
 
-            $bucket = match (true) {
-                Str::startsWith($normalisedLabel, 'k_') || Str::contains($normalisedLabel, ['knowledge', 'pengetahuan']) || Str::startsWith($normalisedKey, 'k_') || Str::contains($normalisedKey, ['knowledge', 'pengetahuan']) => 'knowledge',
-                Str::startsWith($normalisedLabel, 'a_') || Str::contains($normalisedLabel, ['attitude', 'sikap']) || Str::startsWith($normalisedKey, 'a_') || Str::contains($normalisedKey, ['attitude', 'sikap']) => 'attitude',
-                Str::startsWith($normalisedLabel, 'b_') || Str::contains($normalisedLabel, ['behavior', 'behaviour', 'perilaku']) || Str::startsWith($normalisedKey, 'b_') || Str::contains($normalisedKey, ['behavior', 'behaviour', 'perilaku']) => 'behavior',
-                default => null,
-            };
+            $bucket = $this->categoriser->categoriseKey($keyText, $labelText);
 
             if ($bucket === null) {
-                $buckets['behavior']['_uncategorized'][$keyRaw] = $value;
+                $buckets['behavior']['_uncategorized'][$storageKey] = $value;
 
                 continue;
             }
 
-            $buckets[$bucket][$keyRaw] = $value;
+            $buckets[$bucket][$storageKey] = $value;
         }
 
         return $buckets;
+    }
+
+    /**
+     * Resolve a field's answer to a human-readable value.
+     *
+     * Multiple-choice/dropdown fields send `value` as the selected option's
+     * internal id (or an array of ids), not its text — the readable label
+     * lives in the field's own `options` list (`[{id, text}, ...]`). Rating
+     * and open-text fields have no `options` and are returned as-is.
+     *
+     * @param  array<string, mixed>  $field
+     */
+    private function resolveFieldValue(array $field): mixed
+    {
+        $value = $field['value'] ?? null;
+        $options = (array) ($field['options'] ?? []);
+
+        if ($options === [] || $value === null) {
+            return $value;
+        }
+
+        $labelsById = collect($options)->mapWithKeys(fn (array $option) => [
+            (string) ($option['id'] ?? '') => $option['text'] ?? $option['label'] ?? null,
+        ]);
+
+        if (is_array($value)) {
+            $resolved = collect($value)
+                ->map(fn ($id) => $labelsById[(string) $id] ?? $id)
+                ->all();
+
+            // A single-select question still arrives as a one-element array;
+            // store it as a plain string so it's directly gradeable/comparable.
+            return count($resolved) === 1 ? $resolved[0] : $resolved;
+        }
+
+        return $labelsById[(string) $value] ?? $value;
     }
 }

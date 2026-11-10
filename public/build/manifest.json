@@ -25,6 +25,13 @@
       "_utils-CCDJ05Ll.js"
     ]
   },
+  "_campaigns-BCZL8-IK.js": {
+    "file": "assets/campaigns-BCZL8-IK.js",
+    "name": "campaigns",
+    "imports": [
+      "_wayfinder-Dp7PqxvV.js"
+    ]
+  },
   "_card-WmsNS-GT.js": {
     "file": "assets/card-WmsNS-GT.js",
     "name": "card",
@@ -62,6 +69,13 @@
       "_createLucideIcon-CCT6gKO_.js"
     ]
   },
+  "_circle-check-big-dtIqDDj1.js": {
+    "file": "assets/circle-check-big-dtIqDDj1.js",
+    "name": "circle-check-big",
+    "imports": [
+      "_createLucideIcon-CCT6gKO_.js"
+    ]
+  },
   "_clipboard-list-2QSRF_yl.js": {
     "file": "assets/clipboard-list-2QSRF_yl.js",
     "name": "clipboard-list",
@@ -74,6 +88,13 @@
     "name": "confirm",
     "imports": [
       "_wayfinder-Dp7PqxvV.js"
+    ]
+  },
+  "_copy-BaNpjEOG.js": {
+    "file": "assets/copy-BaNpjEOG.js",
+    "name": "copy",
+    "imports": [
+      "_createLucideIcon-CCT6gKO_.js"
     ]
   },
   "_createLucideIcon-CCT6gKO_.js": {
@@ -142,8 +163,8 @@
       "_dist-B7Qt5kBV.js"
     ]
   },
-  "_export-CNtl-E0T.js": {
-    "file": "assets/export-CNtl-E0T.js",
+  "_export-B5fPtxG7.js": {
+    "file": "assets/export-B5fPtxG7.js",
     "name": "export",
     "imports": [
       "_createLucideIcon-CCT6gKO_.js",
@@ -375,9 +396,16 @@
       "_createLucideIcon-CCT6gKO_.js"
     ]
   },
-  "_triangle-alert-D0Nh8cUz.js": {
-    "file": "assets/triangle-alert-D0Nh8cUz.js",
+  "_triangle-alert-BrfYYstg.js": {
+    "file": "assets/triangle-alert-BrfYYstg.js",
     "name": "triangle-alert",
+    "imports": [
+      "_createLucideIcon-CCT6gKO_.js"
+    ]
+  },
+  "_upload-BUhtUelk.js": {
+    "file": "assets/upload-BUhtUelk.js",
+    "name": "upload",
     "imports": [
       "_createLucideIcon-CCT6gKO_.js"
     ]
@@ -423,7 +451,7 @@
     "name": "wayfinder"
   },
   "resources/css/app.css": {
-    "file": "assets/app-Dkbtd-Hs.css",
+    "file": "assets/app-CTalSro7.css",
     "name": "app",
     "names": [
       "app.css"
@@ -432,7 +460,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-wJ3SmuJm.js",
+    "file": "assets/app-eaCjD_rh.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -446,7 +474,7 @@
       "_es2015-BGi_iEZd.js",
       "_respondents-DKVMwb_9.js",
       "_utils-CCDJ05Ll.js",
-      "_export-CNtl-E0T.js",
+      "_export-B5fPtxG7.js",
       "_send-simulation-Dp-AIT1u.js",
       "_users-CH2HaxU1.js",
       "_dist-KLpfkCfB.js",
@@ -454,6 +482,7 @@
       "_separator-DA4qq3c5.js",
       "_routes-BZ4t1sNs.js",
       "_profile-uNtLFEsD.js",
+      "_campaigns-BCZL8-IK.js",
       "_reminders-D8bzLZ0I.js",
       "_heading-C7Ra8pHN.js",
       "_appearance-B6s7A8vg.js",
@@ -467,8 +496,10 @@
       "resources/js/pages/auth/reset-password.tsx",
       "resources/js/pages/auth/two-factor-challenge.tsx",
       "resources/js/pages/auth/verify-email.tsx",
+      "resources/js/pages/campaigns/index.tsx",
       "resources/js/pages/dashboard.tsx",
       "resources/js/pages/data-export.tsx",
+      "resources/js/pages/phishing/campaign-access-code.tsx",
       "resources/js/pages/phishing/completed.tsx",
       "resources/js/pages/phishing/expired.tsx",
       "resources/js/pages/phishing/portal.tsx",
@@ -599,6 +630,25 @@
       "_verification-BOcn3HIw.js"
     ]
   },
+  "resources/js/pages/campaigns/index.tsx": {
+    "file": "assets/campaigns-BYeiv97J.js",
+    "name": "campaigns",
+    "src": "resources/js/pages/campaigns/index.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_createLucideIcon-CCT6gKO_.js",
+      "_button-B6_9E648.js",
+      "_copy-BaNpjEOG.js",
+      "_trash-2-D1wQJSoA.js",
+      "_input-SlRq_CS2.js",
+      "_campaigns-BCZL8-IK.js",
+      "_spinner-DVk5JLiL.js",
+      "_label-DduX7e8w.js",
+      "_badge-CBtJQEx9.js",
+      "_card-WmsNS-GT.js"
+    ]
+  },
   "resources/js/pages/dashboard.tsx": {
     "file": "assets/dashboard-wpDIZNZG.js",
     "name": "dashboard",
@@ -614,7 +664,7 @@
     ]
   },
   "resources/js/pages/data-export.tsx": {
-    "file": "assets/data-export-DqCeL8h8.js",
+    "file": "assets/data-export-Ck176QcP.js",
     "name": "data-export",
     "src": "resources/js/pages/data-export.tsx",
     "isDynamicEntry": true,
@@ -622,23 +672,41 @@
       "_rolldown-runtime-CbXtAM7H.js",
       "_createLucideIcon-CCT6gKO_.js",
       "_button-B6_9E648.js",
-      "_export-CNtl-E0T.js",
+      "_export-B5fPtxG7.js",
       "_shield-check-D3eFOi77.js",
+      "_triangle-alert-BrfYYstg.js",
+      "_upload-BUhtUelk.js",
+      "_spinner-DVk5JLiL.js",
       "_label-DduX7e8w.js",
       "_checkbox-CE3dTBpP.js",
       "_card-WmsNS-GT.js"
     ]
   },
+  "resources/js/pages/phishing/campaign-access-code.tsx": {
+    "file": "assets/campaign-access-code-C0-znQqa.js",
+    "name": "campaign-access-code",
+    "src": "resources/js/pages/phishing/campaign-access-code.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-CbXtAM7H.js",
+      "_createLucideIcon-CCT6gKO_.js",
+      "_button-B6_9E648.js",
+      "_key-round-D4ouqyMP.js",
+      "_input-SlRq_CS2.js",
+      "_label-DduX7e8w.js"
+    ]
+  },
   "resources/js/pages/phishing/completed.tsx": {
-    "file": "assets/completed-Divcm8WQ.js",
+    "file": "assets/completed-6cSZpAof.js",
     "name": "completed",
     "src": "resources/js/pages/phishing/completed.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_createLucideIcon-CCT6gKO_.js",
       "_button-B6_9E648.js",
-      "_triangle-alert-D0Nh8cUz.js",
-      "_shield-check-D3eFOi77.js"
+      "_circle-check-big-dtIqDDj1.js",
+      "_shield-check-D3eFOi77.js",
+      "_triangle-alert-BrfYYstg.js"
     ]
   },
   "resources/js/pages/phishing/expired.tsx": {
@@ -652,7 +720,7 @@
     ]
   },
   "resources/js/pages/phishing/portal.tsx": {
-    "file": "assets/portal-C0aYwVOQ.js",
+    "file": "assets/portal-ClU9nHpa.js",
     "name": "portal",
     "src": "resources/js/pages/phishing/portal.tsx",
     "isDynamicEntry": true,
@@ -669,7 +737,7 @@
     ]
   },
   "resources/js/pages/phishing/reveal.tsx": {
-    "file": "assets/reveal-8nVJ5MhT.js",
+    "file": "assets/reveal-Cjr9feYG.js",
     "name": "reveal",
     "src": "resources/js/pages/phishing/reveal.tsx",
     "isDynamicEntry": true,
@@ -677,12 +745,13 @@
       "_rolldown-runtime-CbXtAM7H.js",
       "_createLucideIcon-CCT6gKO_.js",
       "_button-B6_9E648.js",
-      "_triangle-alert-D0Nh8cUz.js",
-      "_shield-alert-DJRIl0r6.js"
+      "_circle-check-big-dtIqDDj1.js",
+      "_shield-alert-DJRIl0r6.js",
+      "_triangle-alert-BrfYYstg.js"
     ]
   },
   "resources/js/pages/reminders/index.tsx": {
-    "file": "assets/reminders-Cq2MtoMw.js",
+    "file": "assets/reminders-C6hEZxWU.js",
     "name": "reminders",
     "src": "resources/js/pages/reminders/index.tsx",
     "isDynamicEntry": true,
@@ -692,12 +761,12 @@
       "_button-B6_9E648.js",
       "_check-BkzaKRbN.js",
       "_reminders-D8bzLZ0I.js",
-      "_card-WmsNS-GT.js",
-      "_badge-CBtJQEx9.js"
+      "_badge-CBtJQEx9.js",
+      "_card-WmsNS-GT.js"
     ]
   },
   "resources/js/pages/respondents/index.tsx": {
-    "file": "assets/respondents-CXFLlpcy.js",
+    "file": "assets/respondents-CfCbXRqz.js",
     "name": "respondents",
     "src": "resources/js/pages/respondents/index.tsx",
     "isDynamicEntry": true,
@@ -713,12 +782,12 @@
       "_check-BkzaKRbN.js",
       "_trash-2-D1wQJSoA.js",
       "_input-SlRq_CS2.js",
-      "_card-WmsNS-GT.js",
-      "_badge-CBtJQEx9.js"
+      "_badge-CBtJQEx9.js",
+      "_card-WmsNS-GT.js"
     ]
   },
   "resources/js/pages/send-simulation.tsx": {
-    "file": "assets/send-simulation-BjDVzYjp.js",
+    "file": "assets/send-simulation-Sdh7Nj4M.js",
     "name": "send-simulation",
     "src": "resources/js/pages/send-simulation.tsx",
     "isDynamicEntry": true,
@@ -729,6 +798,7 @@
       "_key-round-D4ouqyMP.js",
       "_send-simulation-Dp-AIT1u.js",
       "_trash-2-D1wQJSoA.js",
+      "_upload-BUhtUelk.js",
       "_input-SlRq_CS2.js",
       "_wayfinder-Dp7PqxvV.js",
       "_input-error-DRpyarrM.js",
@@ -771,7 +841,7 @@
     ]
   },
   "resources/js/pages/settings/security.tsx": {
-    "file": "assets/security-BnHOOra-.js",
+    "file": "assets/security-kP6kHKdD.js",
     "name": "security",
     "src": "resources/js/pages/settings/security.tsx",
     "isDynamicEntry": true,
@@ -783,6 +853,7 @@
       "_utils-CCDJ05Ll.js",
       "_check-BkzaKRbN.js",
       "_circle-alert-CQ4n1eCz.js",
+      "_copy-BaNpjEOG.js",
       "_eye-BQgsGlKO.js",
       "_key-round-D4ouqyMP.js",
       "_use-two-factor-auth-C3FuTChk.js",
