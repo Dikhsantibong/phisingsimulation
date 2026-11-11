@@ -93,11 +93,18 @@ class Respondent extends Model
     }
 
     /**
+     * The respondent's most recent questionnaire submission. A respondent can
+     * legitimately have several rows here (e.g. they submitted the Tally form
+     * more than once, or a submission was re-imported under a different
+     * tally_submission_id) — this always resolves to the latest one instead
+     * of an arbitrary row, so scoring/export never silently picks a stale
+     * or duplicate submission.
+     *
      * @return HasOne<QuestionnaireResult, $this>
      */
     public function questionnaireResult(): HasOne
     {
-        return $this->hasOne(QuestionnaireResult::class);
+        return $this->hasOne(QuestionnaireResult::class)->latestOfMany(['submitted_at', 'id']);
     }
 
     /**

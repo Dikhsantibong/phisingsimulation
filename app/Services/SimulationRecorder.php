@@ -53,14 +53,14 @@ class SimulationRecorder
     /**
      * Record the final response from the fake portal.
      *
-     * @param  'submit'|'report'|'reject'  $action  What the respondent did.
+     * @param  'submit'|'report'|'reject'|'reject_email'  $action  What the respondent did.
      * @param  bool  $keystrokeDetected  Whether any text input occurred (never the text itself).
      */
     public function recordBehavior(Respondent $respondent, string $action, bool $keystrokeDetected): SimulationEvent
     {
         $behavior = match (true) {
             $action === 'submit' => BehaviorStatus::Berisiko,
-            in_array($action, ['report', 'reject']) && $keystrokeDetected => BehaviorStatus::Netral,
+            in_array($action, ['report', 'reject', 'reject_email']) && $keystrokeDetected => BehaviorStatus::Netral,
             default => BehaviorStatus::Waspada,
         };
 

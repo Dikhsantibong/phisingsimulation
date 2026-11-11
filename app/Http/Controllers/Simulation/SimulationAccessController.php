@@ -28,7 +28,9 @@ class SimulationAccessController extends Controller
         $recorder->recordAccess($respondent, $request);
 
         if ($request->query('action') === 'reject') {
-            $recorder->recordBehavior($respondent, 'report', false);
+            // Distinct from the portal's own "Laporkan sebagai Mencurigakan"
+            // action ('report') — this one never even opened the portal.
+            $recorder->recordBehavior($respondent, 'reject_email', false);
 
             return redirect()->route('simulation.reveal', ['respondent' => $respondent->session_token]);
         }

@@ -24,6 +24,7 @@ class DataExportScoredTest extends TestCase
         ]);
 
         QuestionnaireResult::factory()->for($respondent)->create([
+            'submitted_at' => '2026-11-11 02:55:49',
             'knowledge_answers' => [
                 'K1' => 'Upaya penipuan untuk mencuri data pribadi dengan menyamar sebagai pihak terpercaya', // correct
                 'K2' => 'URL yang menyerupai situs asli tetapi berbeda sedikit', // correct
@@ -49,6 +50,8 @@ class DataExportScoredTest extends TestCase
         $this->assertStringContainsString('device_type', $content);
         $this->assertStringContainsString('no_responden', $content);
         $this->assertStringContainsString(sprintf('SID-%03d', $respondent->id), $content);
+        $this->assertStringContainsString('submitted_at', $content);
+        $this->assertStringContainsString('2026-11-11T02:55:49', $content);
 
         $header = explode("\n", $content)[0];
         $this->assertStringContainsString('kelas', $header);

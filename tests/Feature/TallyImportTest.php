@@ -98,6 +98,24 @@ class TallyImportTest extends TestCase
         $this->assertSame(1, $respondent->questionnaireResult()->count());
     }
 
+    public function test_two_submissions_for_the_same_respondent_resolve_to_the_latest_by_real_submitted_at(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create();
+
+        $csv = "Submission ID,\"Submitted at\",session_token,K1\n"
+            ."sub_first,2026-11-11 02:50:16,{$respondent->session_token},Jawaban pertama\n"
+            ."sub_second,2026-11-11 02:55:49,{$respondent->session_token},Jawaban kedua\n";
+
+        $this->actingAs($user)->post(route('export.import-tally'), ['file' => $this->csvFile($csv)]);
+
+        $this->assertSame(2, $respondent->questionnaireResult()->getRelated()->where('respondent_id', $respondent->id)->count());
+
+        $resolved = $respondent->fresh()->questionnaireResult;
+        $this->assertSame('Jawaban kedua', $resolved->knowledge_answers['K1']);
+        $this->assertSame('2026-11-11 02:55:49', $resolved->submitted_at->format('Y-m-d H:i:s'));
+    }
+
     public function test_the_kelas_column_updates_the_respondents_class_group(): void
     {
         $user = User::factory()->create();

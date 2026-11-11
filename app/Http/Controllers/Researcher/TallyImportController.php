@@ -8,11 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Respondent;
 use App\Services\TallyAnswerCategoriser;
 use App\Support\MinimalXlsxReader;
+use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use RuntimeException;
+use Throwable;
 
 class TallyImportController extends Controller
 {
@@ -53,6 +56,7 @@ class TallyImportController extends Controller
 
         $sessionTokenColumn = $this->findColumn($header, ['session_token']);
         $submissionIdColumn = $this->findColumn($header, ['submission id', 'submission_id', 'response id', 'response_id']);
+        $submittedAtColumn = $this->findColumn($header, ['submitted at', 'submitted_at']);
 
         if ($sessionTokenColumn === null) {
             Inertia::flash('toast', ['type' => 'error', 'message' => 'Tidak ditemukan kolom "session_token" di file ini.']);
@@ -98,7 +102,7 @@ class TallyImportController extends Controller
                     'knowledge_answers' => $buckets['knowledge'],
                     'attitude_answers' => $buckets['attitude'],
                     'behavior_answers' => $buckets['behavior'],
-                    'submitted_at' => now(),
+                    'submitted_at' => $this->parseSubmittedAt($submittedAtColumn, $assoc),
                 ]
             );
 
@@ -142,6 +146,28 @@ class TallyImportController extends Controller
         fclose($handle);
 
         return $rows;
+    }
+
+    /**
+     * Use the submission's real "Submitted at" timestamp from the Tally
+     * export when present — importing a file long after the fact must not
+     * make every row look like it was submitted "just now", since that
+     * timestamp is what later decides which of several submissions for the
+     * same respondent is the most recent one.
+     *
+     * @param  array<string, mixed>  $row
+     */
+    private function parseSubmittedAt(?string $column, array $row): CarbonInterface
+    {
+        if ($column === null || blank($row[$column] ?? null)) {
+            return now();
+        }
+
+        try {
+            return Date::parse((string) $row[$column]);
+        } catch (Throwable) {
+            return now();
+        }
     }
 
     /**

@@ -110,6 +110,23 @@ class DataExportTest extends TestCase
         $this->assertStringContainsString('option-text', $content);
     }
 
+    public function test_export_distinguishes_portal_report_from_direct_email_rejection(): void
+    {
+        $user = User::factory()->create();
+
+        $reportedOnPortal = Respondent::factory()->create();
+        SimulationEvent::factory()->for($reportedOnPortal)->create(['last_action' => 'report']);
+
+        $rejectedFromEmail = Respondent::factory()->create();
+        SimulationEvent::factory()->for($rejectedFromEmail)->create(['last_action' => 'reject_email']);
+
+        $response = $this->actingAs($user)->get(route('export.download'));
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString('Laporkan Mencurigakan (dari Portal)', $content);
+        $this->assertStringContainsString('Tolak Langsung dari Email/Pesan', $content);
+    }
+
     public function test_kelas_column_prefers_the_tally_answer_over_the_stored_class_group(): void
     {
         $user = User::factory()->create();

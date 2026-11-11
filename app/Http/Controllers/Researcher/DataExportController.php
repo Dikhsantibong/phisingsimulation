@@ -106,6 +106,7 @@ class DataExportController extends Controller
                 'seconds_to_click', 'seconds_to_respond',
                 'behavior_status', 'jenis_tindakan', 'mengetik_form',
                 'device_type', 'os_name', 'browser_name',
+                'questionnaire_status', 'submitted_at',
                 'total_knowledge', 'total_attitude', 'total_behavior', 'simulasi_score',
                 'tingkat_kesadaran_score', 'tingkat_kesadaran',
             ]
@@ -180,6 +181,8 @@ class DataExportController extends Controller
                 $event?->device_type?->value,
                 $event?->os_name,
                 $event?->browser_name,
+                $result?->completion_status?->value,
+                $result?->submitted_at?->toIso8601String(),
                 $knowledge,
                 $attitude,
                 $behavior,
@@ -285,7 +288,8 @@ class DataExportController extends Controller
         return match ($event->last_action) {
             'submit' => 'Submit Form (Verifikasi)',
             'reject' => 'Tolak di Portal (Batal)',
-            'report' => 'Tolak Langsung dari Email/Pesan',
+            'report' => 'Laporkan Mencurigakan (dari Portal)',
+            'reject_email' => 'Tolak Langsung dari Email/Pesan',
             default => match (true) {
                 $event->behavior_status === BehaviorStatus::TidakMerespons => 'Tidak Merespons',
                 $event->first_access_at !== null => 'Membuka Portal (Belum Lanjut)',

@@ -34,13 +34,32 @@ class PortalBehaviorTest extends TestCase
         $this->assertSame('reject', $respondent->simulationEvent->fresh()->last_action);
     }
 
-    public function test_declining_from_the_email_link_records_the_report_action(): void
+    public function test_reporting_as_suspicious_on_the_portal_records_the_report_action(): void
+    {
+        $respondent = Respondent::factory()->create();
+
+        $this->post(route('simulation.behavior', ['respondent' => $respondent->session_token]), [
+            'action' => 'report',
+            'keystroke_detected' => false,
+        ])->assertRedirect();
+
+        $this->assertSame('report', $respondent->simulationEvent->fresh()->last_action);
+    }
+
+    /**
+     * Declining straight from the email/WA link (never opening the portal at
+     * all) must record a different action than the portal's own "Laporkan
+     * sebagai Mencurigakan" button — otherwise the two very different
+     * behaviors (never touched the portal vs. opened it then reported it)
+     * collapse into the same, misleading export label.
+     */
+    public function test_declining_from_the_email_link_records_a_distinct_reject_email_action(): void
     {
         $respondent = Respondent::factory()->create();
 
         $this->get(route('simulation.access', ['respondent' => $respondent->session_token, 'action' => 'reject']))
             ->assertRedirect();
 
-        $this->assertSame('report', $respondent->simulationEvent->fresh()->last_action);
+        $this->assertSame('reject_email', $respondent->simulationEvent->fresh()->last_action);
     }
 }
