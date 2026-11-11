@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Copy, MessageSquareText, Trash2 } from 'lucide-react';
+import { Check, Copy, MessageSquareText, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 import { index as campaignsIndex } from '@/routes/campaigns';
 
 type Option = { value: string; label: string };
@@ -56,6 +57,19 @@ export default function CampaignsIndex({
     const [accessCode, setAccessCode] = useState('');
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    const copyToClipboard = async (key: string, text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedKey(key);
+            window.setTimeout(() => {
+                setCopiedKey((current) => (current === key ? null : current));
+            }, 2000);
+        } catch (error) {
+            console.warn('Copy failed', error);
+        }
+    };
 
     const toggleTheme = (value: string) => {
         setSelectedThemes((prev) =>
@@ -285,28 +299,61 @@ export default function CampaignsIndex({
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    navigator.clipboard.writeText(
+                                                    copyToClipboard(
+                                                        `link-${c.id}`,
                                                         c.public_url as string,
                                                     )
                                                 }
-                                                className="text-muted-foreground hover:text-foreground"
+                                                className={cn(
+                                                    'inline-flex items-center gap-1 transition-colors',
+                                                    copiedKey ===
+                                                        `link-${c.id}`
+                                                        ? 'text-green-600 dark:text-green-500'
+                                                        : 'text-muted-foreground hover:text-foreground',
+                                                )}
                                                 title="Salin tautan"
                                             >
-                                                <Copy className="size-3.5" />
+                                                {copiedKey ===
+                                                `link-${c.id}` ? (
+                                                    <Check className="size-3.5" />
+                                                ) : (
+                                                    <Copy className="size-3.5" />
+                                                )}
+                                                {copiedKey ===
+                                                    `link-${c.id}` && (
+                                                    <span className="text-[11px] font-medium">
+                                                        Tersalin!
+                                                    </span>
+                                                )}
                                             </button>
                                             {c.broadcast_message && (
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        navigator.clipboard.writeText(
+                                                        copyToClipboard(
+                                                            `message-${c.id}`,
                                                             c.broadcast_message as string,
                                                         )
                                                     }
-                                                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                                                    className={cn(
+                                                        'inline-flex items-center gap-1 transition-colors',
+                                                        copiedKey ===
+                                                            `message-${c.id}`
+                                                            ? 'text-green-600 dark:text-green-500'
+                                                            : 'text-muted-foreground hover:text-foreground',
+                                                    )}
                                                     title="Salin pesan WA/broadcast siap kirim (link sudah termasuk)"
                                                 >
-                                                    <MessageSquareText className="size-3.5" />
-                                                    Salin Pesan
+                                                    {copiedKey ===
+                                                    `message-${c.id}` ? (
+                                                        <Check className="size-3.5" />
+                                                    ) : (
+                                                        <MessageSquareText className="size-3.5" />
+                                                    )}
+                                                    {copiedKey ===
+                                                    `message-${c.id}`
+                                                        ? 'Tersalin!'
+                                                        : 'Salin Pesan'}
                                                 </button>
                                             )}
                                         </div>

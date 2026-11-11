@@ -85,11 +85,16 @@ class Respondent extends Model
     }
 
     /**
+     * A respondent should only ever have one simulation event — enforced by
+     * a unique index on respondent_id — but this still resolves to the most
+     * recent row (instead of an arbitrary one) as a safety net for any
+     * historical duplicate created before that constraint existed.
+     *
      * @return HasOne<SimulationEvent, $this>
      */
     public function simulationEvent(): HasOne
     {
-        return $this->hasOne(SimulationEvent::class);
+        return $this->hasOne(SimulationEvent::class)->latestOfMany('id');
     }
 
     /**

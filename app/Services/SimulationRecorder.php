@@ -25,7 +25,12 @@ class SimulationRecorder
      */
     public function recordAccess(Respondent $respondent, Request $request): SimulationEvent
     {
-        $event = $respondent->simulationEvent()->firstOrNew([]);
+        // firstOrCreate (not firstOrNew) so that two near-simultaneous
+        // requests for the same respondent (e.g. a chat app's link-preview
+        // bot racing the real visitor) can't both insert a row: the unique
+        // index on respondent_id makes the loser's insert fail, and
+        // firstOrCreate transparently re-fetches the winner's row instead.
+        $event = $respondent->simulationEvent()->firstOrCreate([]);
 
         $ua = $this->userAgents->parse($request->userAgent());
 
@@ -67,7 +72,9 @@ class SimulationRecorder
         // Submitting the credential form always implies keystrokes occurred.
         $keystrokeDetected = $keystrokeDetected || $action === 'submit';
 
-        $event = $respondent->simulationEvent()->firstOrNew([]);
+        // See recordAccess() above for why firstOrCreate (race-safe) is used
+        // instead of firstOrNew.
+        $event = $respondent->simulationEvent()->firstOrCreate([]);
         $event->fill([
             'behavior_status' => $behavior,
             'last_action' => $action,
