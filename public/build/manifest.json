@@ -451,7 +451,7 @@
     "name": "wayfinder"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CTalSro7.css",
+    "file": "assets/app-DMsltTcf.css",
     "name": "app",
     "names": [
       "app.css"
@@ -460,7 +460,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-eaCjD_rh.js",
+    "file": "assets/app-CD1ckZud.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -631,7 +631,7 @@
     ]
   },
   "resources/js/pages/campaigns/index.tsx": {
-    "file": "assets/campaigns-BYeiv97J.js",
+    "file": "assets/campaigns-Dyif9-_Q.js",
     "name": "campaigns",
     "src": "resources/js/pages/campaigns/index.tsx",
     "isDynamicEntry": true,
@@ -639,6 +639,8 @@
       "_rolldown-runtime-CbXtAM7H.js",
       "_createLucideIcon-CCT6gKO_.js",
       "_button-B6_9E648.js",
+      "_utils-CCDJ05Ll.js",
+      "_check-BkzaKRbN.js",
       "_copy-BaNpjEOG.js",
       "_trash-2-D1wQJSoA.js",
       "_input-SlRq_CS2.js",
