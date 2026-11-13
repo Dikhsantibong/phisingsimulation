@@ -108,7 +108,7 @@ class CampaignControllerTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->where('campaigns.0.broadcast_message', fn ($message) => str_contains($message, 'tes-abc123')
-                && str_contains($message, 'Portal Tes Kemampuan Akademik (TKA)')));
+                && str_contains($message, 'Sistem Tes Kemampuan Akademik (TKA)')));
     }
 
     public function test_index_has_no_broadcast_message_for_targeted_campaigns(): void

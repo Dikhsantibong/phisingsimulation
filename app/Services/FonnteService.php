@@ -47,6 +47,24 @@ class FonnteService
             return false;
         }
 
+        // Fonnte always replies with HTTP 200, even when it rejects the
+        // message (invalid token, insufficient quota, bad target number,
+        // etc.) — the real outcome is only in the JSON body's `status` field
+        // (and inconsistently cased `Status` for at least one error case),
+        // with a `reason` string on failure. Treating any 2xx as success
+        // would silently mark these as sent.
+        $accepted = $response->json('status') ?? $response->json('Status');
+
+        if ($accepted !== true) {
+            Log::error('Fonnte rejected the message.', [
+                'target' => $target,
+                'reason' => $response->json('reason'),
+                'body' => $response->body(),
+            ]);
+
+            return false;
+        }
+
         return true;
     }
 

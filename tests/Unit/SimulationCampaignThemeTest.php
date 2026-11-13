@@ -46,7 +46,7 @@ class SimulationCampaignThemeTest extends TestCase
 
         $message = $campaign->broadcastMessage('https://simcyber.site/c/tes-abc123');
 
-        $this->assertStringContainsString('Portal Tes Kemampuan Akademik (TKA)', $message);
+        $this->assertStringContainsString('Sistem Tes Kemampuan Akademik (TKA)', $message);
         $this->assertStringContainsString('https://simcyber.site/c/tes-abc123', $message);
     }
 }

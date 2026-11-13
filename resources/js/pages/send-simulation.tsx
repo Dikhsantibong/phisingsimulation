@@ -37,26 +37,109 @@ type Props = {
     campaigns: Campaign[];
 };
 
-/** Parse pasted/uploaded CSV: columns name, class_group, email, whatsapp_number. */
+type CsvField = 'name' | 'class_group' | 'email' | 'whatsapp_number';
+
+/** Normalise a header cell for matching: lowercase, punctuation collapsed to spaces. */
+function normaliseHeaderCell(cell: string): string {
+    return cell
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+// Recognised header labels -> the field they map to. Deliberately does NOT
+// include bare "no"/"nomor" (a leading row-number column), since those are
+// ambiguous with a phone-number column and should just be ignored instead.
+const CSV_HEADER_FIELDS: Record<string, CsvField> = {
+    nama: 'name',
+    name: 'name',
+    kelas: 'class_group',
+    class: 'class_group',
+    'class group': 'class_group',
+    email: 'email',
+    'e mail': 'email',
+    whatsapp: 'whatsapp_number',
+    'whatsapp number': 'whatsapp_number',
+    wa: 'whatsapp_number',
+    'no wa': 'whatsapp_number',
+    'nomor wa': 'whatsapp_number',
+};
+
+/**
+ * Map each column index to a field by matching the header row's own labels
+ * (e.g. "No,Nama,Kelas,Email,No. WA" — the unrecognised "No" column is simply
+ * ignored). Returns null when the first line doesn't look like a header at
+ * all (fewer than 2 recognisable labels), so a header-less CSV falls back to
+ * positional parsing below.
+ */
+function mapHeaderColumns(cols: string[]): Partial<Record<number, CsvField>> | null {
+    const mapping: Partial<Record<number, CsvField>> = {};
+    let matched = 0;
+
+    cols.forEach((cell, index) => {
+        const field = CSV_HEADER_FIELDS[normaliseHeaderCell(cell)];
+
+        if (field) {
+            mapping[index] = field;
+            matched++;
+        }
+    });
+
+    return matched >= 2 ? mapping : null;
+}
+
+/** Positional fallback when the CSV has no recognisable header row. */
+function positionalColumns(cols: string[]): Partial<Record<number, CsvField>> {
+    return cols.length >= 4
+        ? { 0: 'name', 1: 'class_group', 2: 'email', 3: 'whatsapp_number' }
+        : { 0: 'name', 1: 'class_group', 2: 'whatsapp_number' };
+}
+
+/**
+ * Parse pasted/uploaded CSV. Columns are identified by their header label
+ * when the first line looks like one (any order, extra columns like a
+ * leading "No" row-number column are ignored); otherwise falls back to the
+ * positional layout: nama, kelas, [email,] no. WA.
+ */
 function parseCsv(text: string): Row[] {
-    return text
+    const lines = text
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean)
-        .map((line) => line.split(/[,;\t]/).map((c) => c.trim()))
-        .filter((cols) => cols.some((c) => c.includes('@')))
+        .map((line) => line.split(/[,;\t]/).map((c) => c.trim()));
+
+    if (lines.length === 0) {
+        return [];
+    }
+
+    const headerMapping = mapHeaderColumns(lines[0]);
+    const dataRows = headerMapping ? lines.slice(1) : lines;
+
+    return dataRows
         .map((cols) => {
-            const email = cols.find((c) => c.includes('@')) ?? '';
-            const rest = cols.filter((c) => c !== email);
+            const mapping = headerMapping ?? positionalColumns(cols);
+            const values: Record<CsvField, string> = {
+                name: '',
+                class_group: '',
+                email: '',
+                whatsapp_number: '',
+            };
+
+            Object.entries(mapping).forEach(([indexKey, field]) => {
+                if (field) {
+                    values[field] = cols[Number(indexKey)] ?? '';
+                }
+            });
 
             return {
-                name: rest[0] ?? '',
-                class_group: rest[1] ?? '',
-                channel: 'email' as Channel,
-                email,
-                whatsapp_number: rest[2] ?? '',
+                name: values.name,
+                class_group: values.class_group,
+                channel: (values.email ? 'email' : 'whatsapp') as Channel,
+                email: values.email,
+                whatsapp_number: values.whatsapp_number,
             };
-        });
+        })
+        .filter((row) => row.email || row.whatsapp_number);
 }
 
 export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
@@ -314,10 +397,6 @@ export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
                                                                 e.target.value,
                                                             )
                                                         }
-                                                        disabled={
-                                                            row.channel ===
-                                                            'whatsapp'
-                                                        }
                                                         className="h-8"
                                                     />
                                                 </td>
@@ -332,10 +411,6 @@ export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
                                                                 'whatsapp_number',
                                                                 e.target.value,
                                                             )
-                                                        }
-                                                        disabled={
-                                                            row.channel ===
-                                                            'email'
                                                         }
                                                         className="h-8"
                                                     />
