@@ -460,7 +460,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-CD1ckZud.js",
+    "file": "assets/app-BWmF1ve2.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -789,7 +789,7 @@
     ]
   },
   "resources/js/pages/send-simulation.tsx": {
-    "file": "assets/send-simulation-Sdh7Nj4M.js",
+    "file": "assets/send-simulation-DGyldXkE.js",
     "name": "send-simulation",
     "src": "resources/js/pages/send-simulation.tsx",
     "isDynamicEntry": true,
