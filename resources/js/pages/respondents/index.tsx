@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Search, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { index as respondentsIndex } from '@/routes/respondents';
+import { bulkDestroy, destroy, index as respondentsIndex } from '@/routes/respondents';
 
 type Respondent = {
     id: number;
@@ -94,6 +95,68 @@ export default function RespondentsIndex({
     const behaviorLabel = (value: string | null) =>
         behaviorStatuses.find((b) => b.value === value)?.label ?? value;
 
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const allSelected =
+        respondents.data.length > 0 &&
+        respondents.data.every((r) => selectedIds.includes(r.id));
+
+    const toggleAll = () => {
+        setSelectedIds(allSelected ? [] : respondents.data.map((r) => r.id));
+    };
+
+    const toggleOne = (id: number) => {
+        setSelectedIds((prev) =>
+            prev.includes(id)
+                ? prev.filter((x) => x !== id)
+                : [...prev, id],
+        );
+    };
+
+    const confirmAndDelete = (
+        title: string,
+        text: string,
+        onConfirm: () => void,
+    ) => {
+        const isDark = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            title,
+            text,
+            icon: 'warning',
+            showCancelButton: true,
+            background: isDark ? '#18181b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: isDark ? '#334155' : '#64748b',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                onConfirm();
+            }
+        });
+    };
+
+    const deleteOne = (id: number) => {
+        confirmAndDelete(
+            'Hapus Responden?',
+            'Semua riwayat simulasi dan log aksi akan terhapus.',
+            () => router.delete(destroy.url(id)),
+        );
+    };
+
+    const deleteSelected = () => {
+        confirmAndDelete(
+            `Hapus ${selectedIds.length} Responden?`,
+            'Semua riwayat simulasi dan log aksi untuk responden yang dipilih akan terhapus.',
+            () =>
+                router.delete(bulkDestroy.url(), {
+                    data: { ids: selectedIds },
+                    onSuccess: () => setSelectedIds([]),
+                }),
+        );
+    };
+
     return (
         <>
             <Head title="Data Responden" />
@@ -154,12 +217,36 @@ export default function RespondentsIndex({
                     </CardContent>
                 </Card>
 
+                {selectedIds.length > 0 && (
+                    <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm dark:border-red-900/50 dark:bg-red-950/20">
+                        <span className="text-red-700 dark:text-red-400">
+                            {selectedIds.length} responden dipilih
+                        </span>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={deleteSelected}
+                        >
+                            <Trash2 className="size-4" />
+                            Hapus yang Dipilih
+                        </Button>
+                    </div>
+                )}
+
                 <Card>
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="border-b bg-muted/50 text-left text-muted-foreground">
                                     <tr>
+                                        <th className="w-10 p-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                onChange={toggleAll}
+                                                aria-label="Pilih semua"
+                                            />
+                                        </th>
                                         <th className="p-3 font-medium">
                                             Responden
                                         </th>
@@ -201,6 +288,18 @@ export default function RespondentsIndex({
                                             key={r.id}
                                             className="border-b last:border-0 hover:bg-muted/30"
                                         >
+                                            <td className="p-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(
+                                                        r.id,
+                                                    )}
+                                                    onChange={() =>
+                                                        toggleOne(r.id)
+                                                    }
+                                                    aria-label={`Pilih ${r.name ?? r.email}`}
+                                                />
+                                            </td>
                                             <td className="p-3">
                                                 <div className="font-medium">
                                                     {r.name ?? r.email}
@@ -275,43 +374,9 @@ export default function RespondentsIndex({
                                                     variant="ghost"
                                                     size="sm"
                                                     className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-                                                    onClick={() => {
-                                                        const isDark =
-                                                            document.documentElement.classList.contains(
-                                                                'dark',
-                                                            );
-
-                                                        Swal.fire({
-                                                            title: 'Hapus Responden?',
-                                                            text: 'Semua riwayat simulasi dan log aksi akan terhapus.',
-                                                            icon: 'warning',
-                                                            showCancelButton: true,
-                                                            background: isDark
-                                                                ? '#18181b'
-                                                                : '#ffffff',
-                                                            color: isDark
-                                                                ? '#f8fafc'
-                                                                : '#0f172a',
-                                                            confirmButtonColor:
-                                                                '#ef4444',
-                                                            cancelButtonColor:
-                                                                isDark
-                                                                    ? '#334155'
-                                                                    : '#64748b',
-                                                            confirmButtonText:
-                                                                'Ya, Hapus',
-                                                            cancelButtonText:
-                                                                'Batal',
-                                                        }).then((res) => {
-                                                            if (
-                                                                res.isConfirmed
-                                                            ) {
-                                                                router.delete(
-                                                                    `/respondents/${r.id}`,
-                                                                );
-                                                            }
-                                                        });
-                                                    }}
+                                                    onClick={() =>
+                                                        deleteOne(r.id)
+                                                    }
                                                 >
                                                     <Trash2 className="size-4" />
                                                 </Button>
@@ -321,7 +386,7 @@ export default function RespondentsIndex({
                                     {respondents.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={11}
+                                                colSpan={12}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada data responden.

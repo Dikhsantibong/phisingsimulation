@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('respondents', [RespondentController::class, 'index'])->name('respondents.index');
+    Route::delete('respondents/bulk-destroy', [RespondentController::class, 'bulkDestroy'])->name('respondents.bulk-destroy');
     Route::delete('respondents/{respondent}', [RespondentController::class, 'destroy'])->name('respondents.destroy');
 
     Route::get('send-simulation', [SendSimulationController::class, 'create'])->name('send-simulation.create');
@@ -80,6 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('campaigns/{campaign}', [CampaignController::class, 'destroy'])->name('campaigns.destroy');
 
     Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
+    Route::delete('reminders/bulk-destroy', [ReminderController::class, 'bulkDestroy'])->name('reminders.bulk-destroy');
+    Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
     Route::post('reminders/{reminder}/wa', SendWAReminderController::class)->name('reminders.wa');
 
     Route::get('export', [DataExportController::class, 'index'])->name('export.index');

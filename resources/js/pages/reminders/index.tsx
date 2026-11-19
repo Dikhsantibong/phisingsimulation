@@ -1,10 +1,16 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { index as remindersIndex, wa } from '@/routes/reminders';
+import {
+    bulkDestroy,
+    destroy,
+    index as remindersIndex,
+    wa,
+} from '@/routes/reminders';
 
 type ReminderTypeValue =
     | 'simulasi_diabaikan'
@@ -103,6 +109,68 @@ export default function RemindersIndex({ reminders }: Props) {
         });
     };
 
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const allSelected =
+        reminders.data.length > 0 &&
+        reminders.data.every((r) => selectedIds.includes(r.id));
+
+    const toggleAll = () => {
+        setSelectedIds(allSelected ? [] : reminders.data.map((r) => r.id));
+    };
+
+    const toggleOne = (id: number) => {
+        setSelectedIds((prev) =>
+            prev.includes(id)
+                ? prev.filter((x) => x !== id)
+                : [...prev, id],
+        );
+    };
+
+    const confirmAndDelete = (
+        title: string,
+        text: string,
+        onConfirm: () => void,
+    ) => {
+        const isDark = document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            title,
+            text,
+            icon: 'warning',
+            showCancelButton: true,
+            background: isDark ? '#18181b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: isDark ? '#334155' : '#64748b',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                onConfirm();
+            }
+        });
+    };
+
+    const deleteOne = (id: number) => {
+        confirmAndDelete(
+            'Hapus Reminder?',
+            'Entri reminder ini akan dihapus. Jika kondisinya masih berlaku, reminder bisa muncul lagi nanti.',
+            () => router.delete(destroy.url(id)),
+        );
+    };
+
+    const deleteSelected = () => {
+        confirmAndDelete(
+            `Hapus ${selectedIds.length} Reminder?`,
+            'Entri reminder yang dipilih akan dihapus. Jika kondisinya masih berlaku, reminder bisa muncul lagi nanti.',
+            () =>
+                router.delete(bulkDestroy.url(), {
+                    data: { ids: selectedIds },
+                    onSuccess: () => setSelectedIds([]),
+                }),
+        );
+    };
+
     return (
         <>
             <Head title="Reminder" />
@@ -111,12 +179,37 @@ export default function RemindersIndex({ reminders }: Props) {
                     Responden yang sudah mengisi kuesioner otomatis hilang
                     dari daftar ini — tidak perlu ditandai manual.
                 </p>
+
+                {selectedIds.length > 0 && (
+                    <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm dark:border-red-900/50 dark:bg-red-950/20">
+                        <span className="text-red-700 dark:text-red-400">
+                            {selectedIds.length} reminder dipilih
+                        </span>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={deleteSelected}
+                        >
+                            <Trash2 className="size-4" />
+                            Hapus yang Dipilih
+                        </Button>
+                    </div>
+                )}
+
                 <Card>
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="border-b bg-muted/50 text-left text-muted-foreground">
                                     <tr>
+                                        <th className="w-10 p-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                onChange={toggleAll}
+                                                aria-label="Pilih semua"
+                                            />
+                                        </th>
                                         <th className="p-3 font-medium">
                                             Responden
                                         </th>
@@ -144,6 +237,18 @@ export default function RemindersIndex({ reminders }: Props) {
                                             key={r.id}
                                             className="border-b last:border-0 hover:bg-muted/30"
                                         >
+                                            <td className="p-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(
+                                                        r.id,
+                                                    )}
+                                                    onChange={() =>
+                                                        toggleOne(r.id)
+                                                    }
+                                                    aria-label={`Pilih ${r.respondent}`}
+                                                />
+                                            </td>
                                             <td className="p-3">
                                                 <div className="font-medium">
                                                     {r.respondent}
@@ -195,28 +300,40 @@ export default function RemindersIndex({ reminders }: Props) {
                                                 )}
                                             </td>
                                             <td className="p-3 text-right">
-                                                <Button
-                                                    size="sm"
-                                                    variant="default"
-                                                    className="bg-emerald-600 hover:bg-emerald-700"
-                                                    onClick={() =>
-                                                        resend(r)
-                                                    }
-                                                >
-                                                    <MessageCircle className="size-4" />
-                                                    {
-                                                        resendAction[
-                                                            r.reminder_type
-                                                        ].buttonLabel
-                                                    }
-                                                </Button>
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="default"
+                                                        className="bg-emerald-600 hover:bg-emerald-700"
+                                                        onClick={() =>
+                                                            resend(r)
+                                                        }
+                                                    >
+                                                        <MessageCircle className="size-4" />
+                                                        {
+                                                            resendAction[
+                                                                r.reminder_type
+                                                            ].buttonLabel
+                                                        }
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
+                                                        onClick={() =>
+                                                            deleteOne(r.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {reminders.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={7}
+                                                colSpan={8}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada reminder terjadwal.

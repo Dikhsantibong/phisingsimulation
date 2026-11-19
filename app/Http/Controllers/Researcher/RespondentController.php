@@ -72,4 +72,24 @@ class RespondentController extends Controller
 
         return back();
     }
+
+    /**
+     * Delete several respondents at once.
+     */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $deleted = Respondent::whereIn('id', $validated['ids'])->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => "{$deleted} data responden berhasil dihapus.",
+        ]);
+
+        return back();
+    }
 }
