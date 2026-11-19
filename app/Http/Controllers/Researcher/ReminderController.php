@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Researcher;
 
+use App\Enums\RespondentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ReminderLog;
-use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,8 +18,8 @@ class ReminderController extends Controller
         $reminders = ReminderLog::query()
             ->whereHas('respondent', function ($query) {
                 $query->whereNotIn('status', [
-                    \App\Enums\RespondentStatus::Finished,
-                    \App\Enums\RespondentStatus::CompletedQuestionnaire,
+                    RespondentStatus::Finished,
+                    RespondentStatus::CompletedQuestionnaire,
                 ]);
             })
             ->with('respondent')
@@ -30,9 +30,9 @@ class ReminderController extends Controller
                 'token' => $reminder->respondent->session_token,
                 'respondent' => $reminder->respondent->name ?? $reminder->respondent->email,
                 'class_group' => $reminder->respondent->class_group,
-                'reminder_type' => $reminder->reminder_type->label(),
+                'reminder_type' => $reminder->reminder_type->value,
+                'reminder_type_label' => $reminder->reminder_type->label(),
                 'phone_number' => $reminder->respondent->whatsapp_number ?? '-',
-                'attempt_number' => $reminder->attempt_number,
                 'scheduled_at' => $reminder->scheduled_at->toIso8601String(),
                 'sent_at' => $reminder->sent_at?->toIso8601String(),
                 'followed_up_at' => $reminder->followed_up_at?->toIso8601String(),
@@ -41,17 +41,5 @@ class ReminderController extends Controller
         return Inertia::render('reminders/index', [
             'reminders' => $reminders,
         ]);
-    }
-
-    /**
-     * Mark a reminder as manually followed up by the researcher.
-     */
-    public function markFollowedUp(ReminderLog $reminder): RedirectResponse
-    {
-        $reminder->update(['followed_up_at' => now()]);
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Ditandai sudah di-follow-up.']);
-
-        return back();
     }
 }

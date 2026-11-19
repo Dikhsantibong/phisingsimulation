@@ -43,10 +43,9 @@ class ReminderSchedulerTest extends TestCase
         $this->assertSame(0, app(ReminderScheduler::class)->run());
     }
 
-    public function test_reminder_cap_is_respected(): void
+    public function test_an_ignored_simulation_is_only_notified_once(): void
     {
         config()->set('services.simulation.ignored_after_hours', 24);
-        config()->set('services.simulation.max_reminders', 2);
 
         $respondent = Respondent::factory()->sent()->create();
         SimulationEvent::factory()->for($respondent)->create([
@@ -55,14 +54,14 @@ class ReminderSchedulerTest extends TestCase
         ]);
 
         $scheduler = app(ReminderScheduler::class);
-        $scheduler->run(); // attempt 1
-        $scheduler->run(); // attempt 2
-        $scheduler->run(); // capped, no new reminder
+        $scheduler->run();
+        $scheduler->run();
+        $scheduler->run();
 
-        $this->assertSame(2, $respondent->reminderLogs()->count());
+        $this->assertSame(1, $respondent->reminderLogs()->count());
     }
 
-    public function test_it_schedules_a_reminder_for_an_unfinished_questionnaire(): void
+    public function test_it_schedules_an_early_notice_for_an_unfinished_questionnaire(): void
     {
         config()->set('services.simulation.questionnaire_after_hours', 24);
 
@@ -77,6 +76,70 @@ class ReminderSchedulerTest extends TestCase
         $this->assertSame(
             1,
             $respondent->reminderLogs()->where('reminder_type', ReminderType::KuesionerBelumSelesai)->count(),
+        );
+    }
+
+    public function test_the_early_notice_is_only_sent_once(): void
+    {
+        config()->set('services.simulation.questionnaire_after_hours', 24);
+
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::CompletedBehavior]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'response_at' => now()->subHours(30),
+        ]);
+
+        $scheduler = app(ReminderScheduler::class);
+        $scheduler->run();
+        $scheduler->run();
+
+        $this->assertSame(
+            1,
+            $respondent->reminderLogs()->where('reminder_type', ReminderType::KuesionerBelumSelesai)->count(),
+        );
+    }
+
+    public function test_it_schedules_a_final_notice_once_the_respondents_own_deadline_has_passed(): void
+    {
+        $respondent = Respondent::factory()->create([
+            'status' => RespondentStatus::CompletedBehavior,
+            'expires_at' => now()->subMinutes(5),
+        ]);
+        $respondent->forceFill(['created_at' => now()->subMinutes(10)])->save();
+
+        SimulationEvent::factory()->for($respondent)->create([
+            'sent_at' => now()->subMinutes(10),
+            'response_at' => now()->subMinutes(9),
+        ]);
+
+        $created = app(ReminderScheduler::class)->run();
+
+        // Both the early notice and the final notice fire together here,
+        // since the respondent's own 5-minute deadline already elapsed
+        // before the early-notice buffer even applied.
+        $this->assertSame(2, $created);
+        $this->assertSame(
+            1,
+            $respondent->reminderLogs()->where('reminder_type', ReminderType::BatasWaktuTerlewat)->count(),
+        );
+    }
+
+    public function test_no_final_notice_is_scheduled_without_an_original_deadline(): void
+    {
+        config()->set('services.simulation.questionnaire_after_hours', 24);
+
+        $respondent = Respondent::factory()->create([
+            'status' => RespondentStatus::CompletedBehavior,
+            'expires_at' => null,
+        ]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'response_at' => now()->subHours(30),
+        ]);
+
+        app(ReminderScheduler::class)->run();
+
+        $this->assertSame(
+            0,
+            $respondent->reminderLogs()->where('reminder_type', ReminderType::BatasWaktuTerlewat)->count(),
         );
     }
 }

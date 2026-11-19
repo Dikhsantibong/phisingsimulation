@@ -80,7 +80,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('campaigns/{campaign}', [CampaignController::class, 'destroy'])->name('campaigns.destroy');
 
     Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
-    Route::put('reminders/{reminder}/followed-up', [ReminderController::class, 'markFollowedUp'])->name('reminders.followed-up');
     Route::post('reminders/{reminder}/wa', SendWAReminderController::class)->name('reminders.wa');
 
     Route::get('export', [DataExportController::class, 'index'])->name('export.index');

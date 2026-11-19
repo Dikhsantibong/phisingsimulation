@@ -62,7 +62,12 @@ class DataExportTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('pendingQuestionnaire', 1));
     }
 
-    public function test_export_includes_the_campaign_title_and_assigned_theme(): void
+    /**
+     * The campaign a respondent belongs to stays in the database (still
+     * used internally, e.g. to resolve the assigned theme) but is
+     * intentionally left out of every export file.
+     */
+    public function test_export_includes_the_assigned_theme_but_not_the_campaign_column(): void
     {
         $user = User::factory()->create();
         $campaign = SimulationCampaign::factory()->create(['title' => 'Gelombang 1 - Kelas XII']);
@@ -74,11 +79,13 @@ class DataExportTest extends TestCase
         $response = $this->actingAs($user)->get(route('export.download'));
         $content = $response->streamedContent();
 
-        $this->assertStringContainsString('campaign', $content);
         $this->assertStringContainsString('theme', $content);
-        $this->assertStringContainsString('Gelombang 1 - Kelas XII', $content);
         $this->assertStringContainsString(SimulationTheme::Tka->value, $content);
         $this->assertStringContainsString($respondent->session_token, $content);
+
+        $header = explode("\n", $content)[0];
+        $this->assertStringNotContainsString('campaign', $header);
+        $this->assertStringNotContainsString('Gelombang 1 - Kelas XII', $content);
     }
 
     public function test_each_questionnaire_question_becomes_its_own_column(): void

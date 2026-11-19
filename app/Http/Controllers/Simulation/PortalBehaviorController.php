@@ -47,12 +47,10 @@ class PortalBehaviorController extends Controller
             return to_route('simulation.completed', ['respondent' => $respondent->session_token]);
         }
 
-        $tallyUrl = config('services.simulation.tally_url');
+        $questionnaireUrl = $respondent->questionnaireUrl();
 
-        if ($tallyUrl) {
-            $url = rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token;
-
-            return Inertia::location($url);
+        if ($questionnaireUrl !== null) {
+            return Inertia::location($questionnaireUrl);
         }
 
         // Fallback if no Tally URL is configured
@@ -71,15 +69,12 @@ class PortalBehaviorController extends Controller
         if (! $isCompleted && in_array($respondent->status, [RespondentStatus::CompletedQuestionnaire, RespondentStatus::Finished])) {
             return to_route('simulation.completed', ['respondent' => $respondent->session_token]);
         }
-        $tallyUrl = config('services.simulation.tally_url');
 
         return Inertia::render('phishing/reveal', [
             'token' => $respondent->session_token,
             'behavior_status' => $respondent->simulationEvent?->behavior_status?->value,
             'keystroke_detected' => (bool) $respondent->simulationEvent?->keystroke_detected,
-            'questionnaireUrl' => $tallyUrl
-                ? rtrim($tallyUrl, '?').'?session_token='.$respondent->session_token
-                : null,
+            'questionnaireUrl' => $respondent->questionnaireUrl(),
             'isCompleted' => $isCompleted,
             'content' => SimulationThemeContent::for($respondent->effectiveTheme()),
         ]);

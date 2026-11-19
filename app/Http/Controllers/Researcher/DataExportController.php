@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Researcher;
 
-use App\Enums\BehaviorStatus;
 use App\Enums\RespondentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\QuestionnaireResult;
@@ -46,7 +45,7 @@ class DataExportController extends Controller
         $questionColumns = $this->questionColumns();
 
         $headers = array_merge(
-            ['no_responden', 'session_token', 'campaign', 'theme', 'kelas'],
+            ['no_responden', 'session_token', 'theme', 'kelas'],
             $anonymise ? [] : ['name', 'email', 'whatsapp_number'],
             [
                 'status',
@@ -98,7 +97,7 @@ class DataExportController extends Controller
         $anonymise = $request->boolean('anonymise');
 
         $headers = array_merge(
-            ['no_responden', 'session_token', 'campaign', 'theme', 'kelas'],
+            ['no_responden', 'session_token', 'theme', 'kelas'],
             $anonymise ? [] : ['name', 'email', 'whatsapp_number'],
             [
                 'status',
@@ -167,7 +166,7 @@ class DataExportController extends Controller
             : null;
 
         return array_merge(
-            [$this->noResponden($respondent), $respondent->session_token, $respondent->campaign?->title, $respondent->effectiveTheme()->value, $this->kelasFor($respondent, $answers)],
+            [$this->noResponden($respondent), $respondent->session_token, $respondent->effectiveTheme()->value, $this->kelasFor($respondent, $answers)],
             $anonymise ? [] : [$respondent->name, $respondent->email, $respondent->whatsapp_number],
             [
                 $respondent->status->value,
@@ -275,27 +274,12 @@ class DataExportController extends Controller
     }
 
     /**
-     * Human-readable final action, derived from the raw action recorded at
-     * response time (works the same for link-shared and email/WA-sent
-     * respondents, since both flow through the same SimulationRecorder).
+     * Human-readable final action for a respondent with no simulation event
+     * yet. See {@see SimulationEvent::jenisTindakanLabel()} for the rest.
      */
     private function jenisTindakanLabel(?SimulationEvent $event): string
     {
-        if ($event === null) {
-            return 'Belum Ada Aktivitas';
-        }
-
-        return match ($event->last_action) {
-            'submit' => 'Submit Form (Verifikasi)',
-            'reject' => 'Tolak di Portal (Batal)',
-            'report' => 'Laporkan Mencurigakan (dari Portal)',
-            'reject_email' => 'Tolak Langsung dari Email/Pesan',
-            default => match (true) {
-                $event->behavior_status === BehaviorStatus::TidakMerespons => 'Tidak Merespons',
-                $event->first_access_at !== null => 'Membuka Portal (Belum Lanjut)',
-                default => 'Belum Ada Aktivitas',
-            },
-        };
+        return $event?->jenisTindakanLabel() ?? 'Belum Ada Aktivitas';
     }
 
     /**
@@ -326,7 +310,7 @@ class DataExportController extends Controller
             : [];
 
         return array_merge(
-            [$this->noResponden($respondent), $respondent->session_token, $respondent->campaign?->title, $respondent->effectiveTheme()->value, $this->kelasFor($respondent, $answers)],
+            [$this->noResponden($respondent), $respondent->session_token, $respondent->effectiveTheme()->value, $this->kelasFor($respondent, $answers)],
             $anonymise ? [] : [$respondent->name, $respondent->email, $respondent->whatsapp_number],
             [
                 $respondent->status->value,

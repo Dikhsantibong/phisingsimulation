@@ -33,7 +33,9 @@ class TallyAnswerCategoriser
     }
 
     /**
-     * Whether a column identifies the submission/session rather than being an answer.
+     * Whether a column identifies the submission/session, or echoes a value
+     * the system itself already sent as a hidden field (e.g. "jenis_tindakan"),
+     * rather than being an actual questionnaire answer.
      */
     public function isMeta(string $key): bool
     {
@@ -41,6 +43,7 @@ class TallyAnswerCategoriser
 
         return Str::contains($normalised, 'session_token')
             || $normalised === 'token'
+            || $normalised === 'jenis_tindakan'
             || Str::contains($normalised, ['submission id', 'respondent id', 'submitted at']);
     }
 

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Enums\BehaviorStatus;
 use App\Enums\RespondentStatus;
 use App\Models\Respondent;
+use App\Models\SimulationEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class SimulationFlowTest extends TestCase
@@ -100,5 +102,26 @@ class SimulationFlowTest extends TestCase
 
         $this->get(route('simulation.reveal', ['respondent' => $respondent->session_token]))
             ->assertOk();
+    }
+
+    /**
+     * The Tally URL must prefill the "session_token" hidden field (so the
+     * webhook/import can match the submission back to this respondent) and
+     * the "jenis_tindakan" hidden field (so the researcher can see the
+     * final action directly in the Tally dataset too).
+     */
+    public function test_the_questionnaire_url_prefills_session_token_and_jenis_tindakan(): void
+    {
+        config()->set('services.simulation.tally_url', 'https://tally.so/r/abc123');
+
+        $respondent = Respondent::factory()->create();
+        SimulationEvent::factory()->for($respondent)->create(['last_action' => 'submit']);
+
+        $response = $this->get(route('simulation.reveal', ['respondent' => $respondent->session_token]));
+
+        $response->assertInertia(fn (Assert $page) => $page->where(
+            'questionnaireUrl',
+            'https://tally.so/r/abc123?session_token='.$respondent->session_token.'&jenis_tindakan=Submit+Form+%28Verifikasi%29',
+        ));
     }
 }

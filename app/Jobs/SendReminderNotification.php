@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\ReminderType;
 use App\Models\ReminderLog;
 use App\Services\FonnteService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,14 +29,32 @@ class SendReminderNotification implements ShouldQueue
         }
 
         $respondent = $reminder->respondent;
+        $name = $respondent->name ?? $respondent->email;
+        $phone = $respondent->whatsapp_number ?? '-';
 
-        $message = sprintf(
-            "[Pengingat Riset Simulasi Phishing]\nResponden %s (kelas %s) perlu di-follow-up.\nAlasan: %s.\nNo. WA responden: %s",
-            $respondent->name ?? $respondent->email,
-            $respondent->class_group,
-            $reminder->reminder_type->label(),
-            $respondent->whatsapp_number ?? '-',
-        );
+        $message = match ($reminder->reminder_type) {
+            ReminderType::SimulasiDiabaikan => sprintf(
+                "⚠️ [%s]\nResponden %s (kelas %s) belum pernah membuka link simulasi sama sekali sejak dikirim, dan sudah melewati batas waktu respon.\nNo. WA responden: %s",
+                $reminder->reminder_type->label(),
+                $name,
+                $respondent->class_group,
+                $phone,
+            ),
+            ReminderType::KuesionerBelumSelesai => sprintf(
+                "⚠️ [%s]\nResponden %s (kelas %s) sudah menyelesaikan simulasi phishing, namun belum mulai mengisi kuesioner. Mohon di-follow-up agar tidak lupa.\nNo. WA responden: %s",
+                $reminder->reminder_type->label(),
+                $name,
+                $respondent->class_group,
+                $phone,
+            ),
+            ReminderType::BatasWaktuTerlewat => sprintf(
+                "🔴 [%s]\nResponden %s (kelas %s) sudah melewati batas waktu respon yang ditetapkan, dan kuesioner MASIH belum diisi. Mohon segera di-follow-up.\nNo. WA responden: %s",
+                $reminder->reminder_type->label(),
+                $name,
+                $respondent->class_group,
+                $phone,
+            ),
+        };
 
         if ($fonnte->notifyResearcher($message)) {
             $reminder->update(['sent_at' => now()]);

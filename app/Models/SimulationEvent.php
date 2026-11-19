@@ -60,4 +60,26 @@ class SimulationEvent extends Model
     {
         return $this->belongsTo(Respondent::class);
     }
+
+    /**
+     * Human-readable final action, derived from the raw action recorded at
+     * response time (works the same for link-shared and email/WA-sent
+     * respondents, since both flow through the same SimulationRecorder).
+     * Shared by the data export and the "jenis_tindakan" hidden field sent
+     * to the Tally questionnaire.
+     */
+    public function jenisTindakanLabel(): string
+    {
+        return match ($this->last_action) {
+            'submit' => 'Submit Form (Verifikasi)',
+            'reject' => 'Tolak di Portal (Batal)',
+            'report' => 'Laporkan Mencurigakan (dari Portal)',
+            'reject_email' => 'Tolak Langsung dari Email/Pesan',
+            default => match (true) {
+                $this->behavior_status === BehaviorStatus::TidakMerespons => 'Tidak Merespons',
+                $this->first_access_at !== null => 'Membuka Portal (Belum Lanjut)',
+                default => 'Belum Ada Aktivitas',
+            },
+        };
+    }
 }

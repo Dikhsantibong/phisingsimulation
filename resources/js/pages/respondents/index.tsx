@@ -28,6 +28,7 @@ type Respondent = {
     sent_at: string | null;
     first_access_at: string | null;
     response_at: string | null;
+    questionnaire_submitted_at: string | null;
 };
 
 type Paginator<T> = {
@@ -186,6 +187,9 @@ export default function RespondentsIndex({
                                         <th className="p-3 font-medium">
                                             Respon
                                         </th>
+                                        <th className="p-3 font-medium">
+                                            Submit Kuesioner
+                                        </th>
                                         <th className="p-3 text-right font-medium">
                                             Aksi
                                         </th>
@@ -261,6 +265,11 @@ export default function RespondentsIndex({
                                             <td className="p-3 text-muted-foreground">
                                                 {fmt(r.response_at)}
                                             </td>
+                                            <td className="p-3 text-muted-foreground">
+                                                {fmt(
+                                                    r.questionnaire_submitted_at,
+                                                )}
+                                            </td>
                                             <td className="p-3 text-right">
                                                 <Button
                                                     variant="ghost"
@@ -312,7 +321,7 @@ export default function RespondentsIndex({
                                     {respondents.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={10}
+                                                colSpan={11}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada data responden.

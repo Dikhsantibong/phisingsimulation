@@ -1,19 +1,24 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { followedUp, index as remindersIndex, wa } from '@/routes/reminders';
+import { index as remindersIndex, wa } from '@/routes/reminders';
+
+type ReminderTypeValue =
+    | 'simulasi_diabaikan'
+    | 'kuesioner_belum_selesai'
+    | 'batas_waktu_terlewat';
 
 type Reminder = {
     id: number;
     token: string;
     respondent: string;
     class_group: string;
-    reminder_type: string;
+    reminder_type: ReminderTypeValue;
+    reminder_type_label: string;
     phone_number: string;
-    attempt_number: number;
     scheduled_at: string;
     sent_at: string | null;
     followed_up_at: string | null;
@@ -40,19 +45,72 @@ function fmt(iso: string | null): string {
     });
 }
 
+const typeBadgeClass: Record<ReminderTypeValue, string> = {
+    simulasi_diabaikan:
+        'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400',
+    kuesioner_belum_selesai:
+        'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400',
+    batas_waktu_terlewat:
+        'border-rose-600 bg-rose-50 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400',
+};
+
+const resendAction: Record<
+    ReminderTypeValue,
+    { confirmText: string; buttonLabel: string }
+> = {
+    simulasi_diabaikan: {
+        confirmText:
+            'Sistem akan mengirim ulang peringatan keamanan palsu (pesan simulasi) ke WhatsApp responden.',
+        buttonLabel: 'Kirim Ulang Simulasi',
+    },
+    kuesioner_belum_selesai: {
+        confirmText:
+            'Sistem akan mengirim link kuesioner ke WhatsApp responden.',
+        buttonLabel: 'Kirim Kuesioner',
+    },
+    batas_waktu_terlewat: {
+        confirmText:
+            'Sistem akan mengirim link kuesioner ke WhatsApp responden.',
+        buttonLabel: 'Kirim Kuesioner',
+    },
+};
+
 export default function RemindersIndex({ reminders }: Props) {
-    const markDone = (id: number) => {
-        router.put(
-            followedUp.url({ reminder: id }),
-            {},
-            { preserveScroll: true },
-        );
+    const resend = (reminder: Reminder) => {
+        const { confirmText } = resendAction[reminder.reminder_type];
+        const isDark =
+            document.documentElement.classList.contains('dark');
+
+        Swal.fire({
+            title: 'Kirim WhatsApp?',
+            text: confirmText,
+            icon: 'question',
+            showCancelButton: true,
+            background: isDark ? '#18181b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            confirmButtonColor: '#059669',
+            cancelButtonColor: isDark ? '#334155' : '#64748b',
+            confirmButtonText: 'Ya, Kirim',
+            cancelButtonText: 'Batal',
+        }).then((res) => {
+            if (res.isConfirmed) {
+                router.post(
+                    wa.url({ reminder: reminder.id }),
+                    {},
+                    { preserveScroll: true },
+                );
+            }
+        });
     };
 
     return (
         <>
             <Head title="Reminder" />
             <div className="flex flex-col gap-4 p-4">
+                <p className="text-sm text-muted-foreground">
+                    Responden yang sudah mengisi kuesioner otomatis hilang
+                    dari daftar ini — tidak perlu ditandai manual.
+                </p>
                 <Card>
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
@@ -63,20 +121,19 @@ export default function RemindersIndex({ reminders }: Props) {
                                             Responden
                                         </th>
                                         <th className="p-3 font-medium">
-                                            Status
+                                            Jenis Pengingat
                                         </th>
                                         <th className="p-3 font-medium">
                                             No HP
                                         </th>
-                                        <th className="p-3 font-medium">Ke-</th>
                                         <th className="p-3 font-medium">
                                             Dijadwalkan
                                         </th>
                                         <th className="p-3 font-medium">
-                                            Terkirim
+                                            Notifikasi ke Peneliti
                                         </th>
                                         <th className="p-3 font-medium">
-                                            Status Penanganan
+                                            Sudah Dikirim Ulang?
                                         </th>
                                         <th className="p-3" />
                                     </tr>
@@ -99,21 +156,16 @@ export default function RemindersIndex({ reminders }: Props) {
                                                 <Badge
                                                     variant="outline"
                                                     className={
-                                                        r.reminder_type.toLowerCase() === 'pesan diabaikan'
-                                                            ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                                                            : r.reminder_type.toLowerCase() === 'kuesioner tidak selesai'
-                                                              ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400'
-                                                              : ''
+                                                        typeBadgeClass[
+                                                            r.reminder_type
+                                                        ]
                                                     }
                                                 >
-                                                    {r.reminder_type}
+                                                    {r.reminder_type_label}
                                                 </Badge>
                                             </td>
                                             <td className="p-3">
                                                 {r.phone_number}
-                                            </td>
-                                            <td className="p-3 tabular-nums">
-                                                {r.attempt_number}
                                             </td>
                                             <td className="p-3 text-muted-foreground">
                                                 {fmt(r.scheduled_at)}
@@ -132,101 +184,39 @@ export default function RemindersIndex({ reminders }: Props) {
                                             <td className="p-3">
                                                 {r.followed_up_at ? (
                                                     <Badge className="bg-emerald-600">
-                                                        Selesai
+                                                        {fmt(
+                                                            r.followed_up_at,
+                                                        )}
                                                     </Badge>
                                                 ) : (
                                                     <span className="text-muted-foreground">
-                                                        —
+                                                        Belum
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="p-3 text-right">
-                                                {!r.followed_up_at && (
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="default"
-                                                            className="bg-emerald-600 hover:bg-emerald-700"
-                                                            onClick={() => {
-                                                                const message =
-                                                                    r.reminder_type ===
-                                                                    'Kuesioner Tidak Selesai'
-                                                                        ? 'Sistem akan mengirim link evaluasi Tally ke WhatsApp responden.'
-                                                                        : 'Sistem akan mengirim ulang peringatan keamanan palsu ke WhatsApp responden.';
-                                                                const isDark =
-                                                                    document.documentElement.classList.contains(
-                                                                        'dark',
-                                                                    );
-
-                                                                Swal.fire({
-                                                                    title: 'Kirim WhatsApp?',
-                                                                    text: message,
-                                                                    icon: 'question',
-                                                                    showCancelButton: true,
-                                                                    background:
-                                                                        isDark
-                                                                            ? '#18181b'
-                                                                            : '#ffffff',
-                                                                    color: isDark
-                                                                        ? '#f8fafc'
-                                                                        : '#0f172a',
-                                                                    confirmButtonColor:
-                                                                        '#059669',
-                                                                    cancelButtonColor:
-                                                                        isDark
-                                                                            ? '#334155'
-                                                                            : '#64748b',
-                                                                    confirmButtonText:
-                                                                        'Ya, Kirim',
-                                                                    cancelButtonText:
-                                                                        'Batal',
-                                                                }).then(
-                                                                    (res) => {
-                                                                        if (
-                                                                            res.isConfirmed
-                                                                        ) {
-                                                                            router.post(
-                                                                                wa.url(
-                                                                                    {
-                                                                                        reminder:
-                                                                                            r.id,
-                                                                                    },
-                                                                                ),
-                                                                                {},
-                                                                                {
-                                                                                    preserveScroll: true,
-                                                                                },
-                                                                            );
-                                                                        }
-                                                                    },
-                                                                );
-                                                            }}
-                                                        >
-                                                            <MessageCircle className="size-4" />
-                                                            {r.reminder_type ===
-                                                            'Kuesioner Tidak Selesai'
-                                                                ? 'Kirim Tally'
-                                                                : 'Kirim Simulasi'}
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                markDone(r.id)
-                                                            }
-                                                        >
-                                                            <Check className="size-4" />
-                                                            Tandai Selesai
-                                                        </Button>
-                                                    </div>
-                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="default"
+                                                    className="bg-emerald-600 hover:bg-emerald-700"
+                                                    onClick={() =>
+                                                        resend(r)
+                                                    }
+                                                >
+                                                    <MessageCircle className="size-4" />
+                                                    {
+                                                        resendAction[
+                                                            r.reminder_type
+                                                        ].buttonLabel
+                                                    }
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
                                     {reminders.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={8}
+                                                colSpan={7}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada reminder terjadwal.

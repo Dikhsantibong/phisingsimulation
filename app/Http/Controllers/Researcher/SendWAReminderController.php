@@ -42,11 +42,9 @@ class SendWAReminderController extends Controller
                      ."{$theme['warning_note']}\n\n"
                      ."👉 {$url}\n\n";
         } else {
-            // Questionnaire reminder
-            $url = route('simulation.reveal', ['respondent' => $respondent->session_token]);
-            $tallyUrl = config('services.simulation.tally_url');
-            // If they want to just show the reveal page again, or provide direct tally URL:
-            $formUrl = $tallyUrl ? $tallyUrl.'?respondent='.$respondent->session_token : $url;
+            // Questionnaire reminder (KuesionerBelumSelesai or BatasWaktuTerlewat)
+            $formUrl = $respondent->questionnaireUrl()
+                ?? route('simulation.reveal', ['respondent' => $respondent->session_token]);
 
             $message = "*Riset Edukasi Phishing*\n\n"
                      .'Halo'.($respondent->name ? " {$respondent->name}" : '').",\n\n"

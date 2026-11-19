@@ -119,4 +119,25 @@ class Respondent extends Model
     {
         return $this->hasMany(ReminderLog::class);
     }
+
+    /**
+     * The external Tally questionnaire URL for this respondent, prefilling
+     * the hidden "session_token" and "jenis_tindakan" fields. Null when no
+     * Tally URL is configured.
+     */
+    public function questionnaireUrl(): ?string
+    {
+        $tallyUrl = config('services.simulation.tally_url');
+
+        if (blank($tallyUrl)) {
+            return null;
+        }
+
+        $query = http_build_query([
+            'session_token' => $this->session_token,
+            'jenis_tindakan' => $this->simulationEvent?->jenisTindakanLabel() ?? 'Belum Ada Aktivitas',
+        ]);
+
+        return rtrim($tallyUrl, '?').'?'.$query;
+    }
 }

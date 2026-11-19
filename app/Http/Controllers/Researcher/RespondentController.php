@@ -19,7 +19,7 @@ class RespondentController extends Controller
     public function index(Request $request): Response
     {
         $respondents = Respondent::query()
-            ->with('simulationEvent')
+            ->with(['simulationEvent', 'questionnaireResult'])
             ->when($request->filled('class_group'), fn ($query) => $query->where('class_group', $request->string('class_group')))
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->when($request->filled('search'), function ($query) use ($request) {
@@ -46,6 +46,7 @@ class RespondentController extends Controller
                 'sent_at' => $respondent->simulationEvent?->sent_at?->toIso8601String(),
                 'first_access_at' => $respondent->simulationEvent?->first_access_at?->toIso8601String(),
                 'response_at' => $respondent->simulationEvent?->response_at?->toIso8601String(),
+                'questionnaire_submitted_at' => $respondent->questionnaireResult?->submitted_at?->toIso8601String(),
             ]);
 
         return Inertia::render('respondents/index', [
