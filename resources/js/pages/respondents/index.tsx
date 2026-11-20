@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Search, Trash2 } from 'lucide-react';
+import { Check, Copy, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { bulkDestroy, destroy, index as respondentsIndex } from '@/routes/respondents';
+import { cn } from '@/lib/utils';
+import { bulkDestroy, index as respondentsIndex } from '@/routes/respondents';
 
 type Respondent = {
     id: number;
@@ -95,6 +96,20 @@ export default function RespondentsIndex({
     const behaviorLabel = (value: string | null) =>
         behaviorStatuses.find((b) => b.value === value)?.label ?? value;
 
+    const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+    const copyToken = async (token: string) => {
+        try {
+            await navigator.clipboard.writeText(token);
+            setCopiedToken(token);
+            window.setTimeout(() => {
+                setCopiedToken((current) => (current === token ? null : current));
+            }, 2000);
+        } catch (error) {
+            console.warn('Copy failed', error);
+        }
+    };
+
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const allSelected =
         respondents.data.length > 0 &&
@@ -135,14 +150,6 @@ export default function RespondentsIndex({
                 onConfirm();
             }
         });
-    };
-
-    const deleteOne = (id: number) => {
-        confirmAndDelete(
-            'Hapus Responden?',
-            'Semua riwayat simulasi dan log aksi akan terhapus.',
-            () => router.delete(destroy.url(id)),
-        );
     };
 
     const deleteSelected = () => {
@@ -277,9 +284,6 @@ export default function RespondentsIndex({
                                         <th className="p-3 font-medium">
                                             Submit Kuesioner
                                         </th>
-                                        <th className="p-3 text-right font-medium">
-                                            Aksi
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -304,9 +308,28 @@ export default function RespondentsIndex({
                                                 <div className="font-medium">
                                                     {r.name ?? r.email}
                                                 </div>
-                                                <div className="font-mono text-xs text-muted-foreground">
-                                                    {r.token.slice(0, 8)}…
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        copyToken(r.token)
+                                                    }
+                                                    title={r.token}
+                                                    className={cn(
+                                                        'inline-flex items-center gap-1 font-mono text-xs break-all transition-colors',
+                                                        copiedToken ===
+                                                            r.token
+                                                            ? 'text-green-600 dark:text-green-500'
+                                                            : 'text-muted-foreground hover:text-foreground',
+                                                    )}
+                                                >
+                                                    {copiedToken ===
+                                                    r.token ? (
+                                                        <Check className="size-3 shrink-0" />
+                                                    ) : (
+                                                        <Copy className="size-3 shrink-0" />
+                                                    )}
+                                                    {r.token}
+                                                </button>
                                             </td>
                                             <td className="p-3">
                                                 {r.email}
@@ -369,24 +392,12 @@ export default function RespondentsIndex({
                                                     r.questionnaire_submitted_at,
                                                 )}
                                             </td>
-                                            <td className="p-3 text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-                                                    onClick={() =>
-                                                        deleteOne(r.id)
-                                                    }
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </td>
                                         </tr>
                                     ))}
                                     {respondents.data.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={12}
+                                                colSpan={11}
                                                 className="p-8 text-center text-muted-foreground"
                                             >
                                                 Belum ada data responden.

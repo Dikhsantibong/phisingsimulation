@@ -142,4 +142,66 @@ class ReminderSchedulerTest extends TestCase
             $respondent->reminderLogs()->where('reminder_type', ReminderType::BatasWaktuTerlewat)->count(),
         );
     }
+
+    /**
+     * A respondent who genuinely redoes the simulation (e.g. the researcher
+     * re-tests them, bumping response_at forward) deserves a fresh
+     * reminder cycle — a stale log from a previous attempt must not block it.
+     */
+    public function test_a_new_simulation_attempt_gets_its_own_reminder_even_if_an_old_one_exists(): void
+    {
+        config()->set('services.simulation.questionnaire_after_hours', 24);
+
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::CompletedBehavior]);
+        $event = SimulationEvent::factory()->for($respondent)->create([
+            'response_at' => now()->subHours(30),
+        ]);
+
+        // A stale reminder from a much earlier attempt.
+        $staleReminder = $respondent->reminderLogs()->create([
+            'reminder_type' => ReminderType::KuesionerBelumSelesai,
+            'channel' => 'whatsapp',
+            'scheduled_at' => now()->subDays(3),
+            'attempt_number' => 1,
+        ]);
+        $staleReminder->forceFill(['created_at' => now()->subDays(3)])->save();
+
+        // The respondent redid the simulation: a fresh response_at.
+        $event->update(['response_at' => now()->subHours(30)]);
+
+        $created = app(ReminderScheduler::class)->run();
+
+        $this->assertSame(1, $created);
+        $this->assertSame(
+            2,
+            $respondent->reminderLogs()->where('reminder_type', ReminderType::KuesionerBelumSelesai)->count(),
+        );
+    }
+
+    /**
+     * Deleting a reminder from the Pengingat page is a permanent dismissal:
+     * the next scan must not silently recreate it (and re-notify the
+     * researcher) just because the underlying condition still holds.
+     */
+    public function test_a_manually_deleted_reminder_is_not_recreated(): void
+    {
+        config()->set('services.simulation.ignored_after_hours', 24);
+
+        $respondent = Respondent::factory()->sent()->create();
+        SimulationEvent::factory()->for($respondent)->create([
+            'sent_at' => now()->subHours(30),
+            'first_access_at' => null,
+        ]);
+
+        app(ReminderScheduler::class)->run();
+        $this->assertSame(1, $respondent->reminderLogs()->count());
+
+        $respondent->reminderLogs()->first()->delete();
+        $this->assertSame(0, $respondent->reminderLogs()->count());
+
+        app(ReminderScheduler::class)->run();
+
+        $this->assertSame(0, $respondent->reminderLogs()->count());
+        $this->assertSame(1, $respondent->reminderLogs()->withTrashed()->count());
+    }
 }

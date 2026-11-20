@@ -22,7 +22,7 @@ class ReminderControllerTest extends TestCase
             ->delete(route('reminders.destroy', $reminder))
             ->assertRedirect();
 
-        $this->assertDatabaseMissing('reminder_logs', ['id' => $reminder->id]);
+        $this->assertSoftDeleted('reminder_logs', ['id' => $reminder->id]);
     }
 
     public function test_several_reminders_can_be_deleted_at_once(): void
@@ -38,7 +38,7 @@ class ReminderControllerTest extends TestCase
             ->assertRedirect();
 
         foreach ($toDelete as $reminder) {
-            $this->assertDatabaseMissing('reminder_logs', ['id' => $reminder->id]);
+            $this->assertSoftDeleted('reminder_logs', ['id' => $reminder->id]);
         }
 
         $this->assertDatabaseHas('reminder_logs', ['id' => $toKeep->id]);

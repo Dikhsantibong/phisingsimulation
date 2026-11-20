@@ -5,12 +5,7 @@ import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    bulkDestroy,
-    destroy,
-    index as remindersIndex,
-    wa,
-} from '@/routes/reminders';
+import { bulkDestroy, index as remindersIndex, wa } from '@/routes/reminders';
 
 type ReminderTypeValue =
     | 'simulasi_diabaikan'
@@ -149,14 +144,6 @@ export default function RemindersIndex({ reminders }: Props) {
                 onConfirm();
             }
         });
-    };
-
-    const deleteOne = (id: number) => {
-        confirmAndDelete(
-            'Hapus Reminder?',
-            'Entri reminder ini akan dihapus. Jika kondisinya masih berlaku, reminder bisa muncul lagi nanti.',
-            () => router.delete(destroy.url(id)),
-        );
     };
 
     const deleteSelected = () => {
@@ -300,33 +287,21 @@ export default function RemindersIndex({ reminders }: Props) {
                                                 )}
                                             </td>
                                             <td className="p-3 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="default"
-                                                        className="bg-emerald-600 hover:bg-emerald-700"
-                                                        onClick={() =>
-                                                            resend(r)
-                                                        }
-                                                    >
-                                                        <MessageCircle className="size-4" />
-                                                        {
-                                                            resendAction[
-                                                                r.reminder_type
-                                                            ].buttonLabel
-                                                        }
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
-                                                        onClick={() =>
-                                                            deleteOne(r.id)
-                                                        }
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                    </Button>
-                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant="default"
+                                                    className="bg-emerald-600 hover:bg-emerald-700"
+                                                    onClick={() =>
+                                                        resend(r)
+                                                    }
+                                                >
+                                                    <MessageCircle className="size-4" />
+                                                    {
+                                                        resendAction[
+                                                            r.reminder_type
+                                                        ].buttonLabel
+                                                    }
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}

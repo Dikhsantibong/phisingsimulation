@@ -63,7 +63,9 @@ class ReminderScheduler
             ->get();
 
         foreach ($respondents as $respondent) {
-            if ($this->queueOnce($respondent, ReminderType::SimulasiDiabaikan)) {
+            $activeSince = $respondent->simulationEvent?->sent_at;
+
+            if ($this->queueOnce($respondent, ReminderType::SimulasiDiabaikan, $activeSince)) {
                 $created++;
 
                 // Never accessed before the deadline: freeze the outcome
@@ -97,7 +99,7 @@ class ReminderScheduler
                 continue;
             }
 
-            if ($this->queueOnce($respondent, ReminderType::KuesionerBelumSelesai)) {
+            if ($this->queueOnce($respondent, ReminderType::KuesionerBelumSelesai, $event->response_at)) {
                 $created++;
             }
         }
@@ -120,7 +122,9 @@ class ReminderScheduler
                 && now()->greaterThanOrEqualTo($respondent->expires_at));
 
         foreach ($respondents as $respondent) {
-            if ($this->queueOnce($respondent, ReminderType::BatasWaktuTerlewat)) {
+            $activeSince = $respondent->simulationEvent?->response_at;
+
+            if ($this->queueOnce($respondent, ReminderType::BatasWaktuTerlewat, $activeSince)) {
                 $created++;
             }
         }
@@ -173,15 +177,27 @@ class ReminderScheduler
 
     /**
      * Queue a reminder for a respondent, but only the first time for this
-     * type — every notice here is fire-once, never repeated.
+     * type within the current simulation cycle — fire-once, never repeated,
+     * unless the respondent genuinely redoes the simulation (which bumps
+     * $activeSince forward, e.g. a new sent_at/response_at), in which case
+     * a stale reminder from a previous cycle no longer counts.
+     *
+     * Deleted reminders still block re-creation (withTrashed): removing a
+     * row from the Pengingat page is a permanent dismissal, not a reset —
+     * otherwise the next scheduler scan would just recreate it and notify
+     * the researcher again.
      */
-    private function queueOnce(Respondent $respondent, ReminderType $type): bool
+    private function queueOnce(Respondent $respondent, ReminderType $type, ?CarbonInterface $activeSince): bool
     {
-        $alreadyNotified = $respondent->reminderLogs()
-            ->where('reminder_type', $type)
-            ->exists();
+        $query = $respondent->reminderLogs()
+            ->withTrashed()
+            ->where('reminder_type', $type);
 
-        if ($alreadyNotified) {
+        if ($activeSince !== null) {
+            $query->where('created_at', '>=', $activeSince);
+        }
+
+        if ($query->exists()) {
             return false;
         }
 
