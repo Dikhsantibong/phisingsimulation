@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\ReminderType;
+use App\Enums\RespondentStatus;
 use App\Models\ReminderLog;
 use App\Models\Respondent;
+use App\Models\SimulationEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ReminderControllerTest extends TestCase
@@ -72,5 +75,43 @@ class ReminderControllerTest extends TestCase
 
         $this->delete(route('reminders.destroy', $reminder))
             ->assertRedirect(route('login'));
+    }
+
+    /**
+     * A "Belum Akses Simulasi" reminder is a snapshot of a moment that has
+     * passed: if the respondent went on to actually open the link
+     * afterwards, that old reminder must stop showing (and must not keep
+     * misrepresenting them as having never accessed the simulation).
+     */
+    public function test_an_ignored_simulation_reminder_disappears_once_the_respondent_accesses_it(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::Clicked]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => now(),
+        ]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::SimulasiDiabaikan,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data', []));
+    }
+
+    public function test_an_ignored_simulation_reminder_still_shows_while_truly_unaccessed(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->sent()->create();
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => null,
+        ]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::SimulasiDiabaikan,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data.0.respondent', $respondent->name ?? $respondent->email));
     }
 }

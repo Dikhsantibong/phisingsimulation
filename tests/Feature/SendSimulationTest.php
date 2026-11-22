@@ -175,4 +175,53 @@ class SendSimulationTest extends TestCase
     {
         $this->post(route('send-simulation.store'), [])->assertRedirect(route('login'));
     }
+
+    /**
+     * Re-sending to a WhatsApp number/email that already belongs to an
+     * existing respondent is allowed on purpose (e.g. re-testing during the
+     * study) — it creates a fresh respondent with its own session_token
+     * rather than being silently blocked.
+     */
+    public function test_resending_to_an_already_registered_contact_is_allowed(): void
+    {
+        Queue::fake();
+        $user = User::factory()->withResearchKey('kunci-riset')->create();
+        $campaign = SimulationCampaign::factory()->targeted()->create();
+        $existing = Respondent::factory()->create(['whatsapp_number' => '628123456789']);
+
+        $this->actingAs($user)->post(route('send-simulation.store'), [
+            'research_key' => 'kunci-riset',
+            'campaign_id' => $campaign->id,
+            'respondents' => [
+                ['channel' => 'whatsapp', 'whatsapp_number' => '628123456789'],
+            ],
+        ])->assertRedirect(route('respondents.index'));
+
+        $respondents = Respondent::where('whatsapp_number', '628123456789')->get();
+        $this->assertCount(2, $respondents);
+        $this->assertNotSame($existing->session_token, $respondents->last()->session_token);
+    }
+
+    /**
+     * The same contact repeated twice within one submitted batch (e.g. a
+     * duplicate line in an imported CSV) must only create one respondent,
+     * not two, for what is really a single row.
+     */
+    public function test_a_duplicate_contact_within_the_same_batch_is_only_created_once(): void
+    {
+        Queue::fake();
+        $user = User::factory()->withResearchKey('kunci-riset')->create();
+        $campaign = SimulationCampaign::factory()->targeted()->create();
+
+        $this->actingAs($user)->post(route('send-simulation.store'), [
+            'research_key' => 'kunci-riset',
+            'campaign_id' => $campaign->id,
+            'respondents' => [
+                ['name' => 'Budi', 'channel' => 'whatsapp', 'whatsapp_number' => '628123456789'],
+                ['name' => 'Budi (duplikat)', 'channel' => 'whatsapp', 'whatsapp_number' => '628123456789'],
+            ],
+        ])->assertRedirect(route('respondents.index'));
+
+        $this->assertSame(1, Respondent::where('whatsapp_number', '628123456789')->count());
+    }
 }

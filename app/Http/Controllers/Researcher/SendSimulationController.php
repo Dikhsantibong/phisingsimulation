@@ -39,11 +39,19 @@ class SendSimulationController extends Controller
 
     /**
      * Create respondents and queue the simulated phishing emails.
+     *
+     * Deliberately does NOT check whether a WhatsApp number/email already
+     * belongs to an existing respondent from an earlier send — re-testing
+     * with the same contact is expected during the study. It only
+     * deduplicates rows that repeat within this same submitted batch, so
+     * one accidental duplicate line in an imported CSV can't create two
+     * respondent records (each with their own session_token) for what is
+     * really a single row.
      */
     public function store(SendSimulationRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $rows = $data['respondents'];
+        $rows = $this->deduplicateWithinBatch($data['respondents']);
 
         $expiresAt = null;
         if (! empty($data['time_limit_value'])) {
@@ -81,5 +89,36 @@ class SendSimulationController extends Controller
         ]);
 
         return to_route('respondents.index');
+    }
+
+    /**
+     * Drop rows that repeat the same WhatsApp number/email within this one
+     * submitted batch, keeping the first occurrence — a brand-new
+     * respondent (and session_token) is still created per row, just not
+     * duplicated for what's really the same contact entered twice.
+     *
+     * @param  array<int, array{channel: string, email?: string|null, whatsapp_number?: string|null}>  $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function deduplicateWithinBatch(array $rows): array
+    {
+        $seen = [];
+        $unique = [];
+
+        foreach ($rows as $row) {
+            $key = ($row['whatsapp_number'] ?? null) ?: ($row['email'] ?? null);
+
+            if ($key !== null) {
+                if (isset($seen[$key])) {
+                    continue;
+                }
+
+                $seen[$key] = true;
+            }
+
+            $unique[] = $row;
+        }
+
+        return $unique;
     }
 }

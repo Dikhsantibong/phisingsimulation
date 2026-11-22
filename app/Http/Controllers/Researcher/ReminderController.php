@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Researcher;
 
+use App\Enums\ReminderType;
 use App\Enums\RespondentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ReminderLog;
@@ -23,6 +24,17 @@ class ReminderController extends Controller
                     RespondentStatus::Finished,
                     RespondentStatus::CompletedQuestionnaire,
                 ]);
+            })
+            // A "Belum Akses Simulasi" reminder is a snapshot of a moment
+            // that has since passed if the respondent went on to actually
+            // open the link — stale once overtaken by events, so it must
+            // not keep showing (and notifying the researcher about) a
+            // "they never accessed it" state that is no longer true.
+            ->where(function ($query) {
+                $query->where('reminder_type', '!=', ReminderType::SimulasiDiabaikan)
+                    ->orWhereHas('respondent.simulationEvent', function ($q) {
+                        $q->whereNull('first_access_at');
+                    });
             })
             ->with('respondent')
             ->latest('scheduled_at')
