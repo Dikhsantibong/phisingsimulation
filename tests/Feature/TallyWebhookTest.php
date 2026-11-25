@@ -36,7 +36,7 @@ class TallyWebhookTest extends TestCase
     public function test_valid_submission_is_linked_and_categorised(): void
     {
         $respondent = Respondent::factory()->create();
-        SimulationEvent::factory()->for($respondent)->create();
+        SimulationEvent::factory()->for($respondent)->create(['response_at' => now()]);
 
         $this->postJson(route('webhooks.tally'), $this->payload($respondent->session_token, 'sub_1'))
             ->assertOk();
@@ -48,6 +48,40 @@ class TallyWebhookTest extends TestCase
         $this->assertSame(5, $result->attitude_answers['a_1']);
         $this->assertSame(3, $result->behavior_answers['b_1']);
         $this->assertSame(RespondentStatus::Finished, $respondent->fresh()->status);
+    }
+
+    /**
+     * A respondent whose simulation_event row only has sent_at (message was
+     * sent, but they never actually acted on the portal — no response_at)
+     * must be marked as "questionnaire only", never as having completed the
+     * simulation too. A simulation_event row exists the moment a message is
+     * sent, so its mere presence must not be read as "they did the
+     * simulation".
+     */
+    public function test_a_submission_without_any_portal_response_is_marked_questionnaire_only(): void
+    {
+        $respondent = Respondent::factory()->create();
+        SimulationEvent::factory()->for($respondent)->create(['response_at' => null]);
+
+        $this->postJson(route('webhooks.tally'), $this->payload($respondent->session_token, 'sub_no_portal'))
+            ->assertOk();
+
+        $this->assertSame(RespondentStatus::CompletedQuestionnaire, $respondent->fresh()->status);
+    }
+
+    /**
+     * A respondent who was never sent a simulation at all (no
+     * simulation_event row whatsoever) must also be marked "questionnaire
+     * only", not crash on a null simulationEvent.
+     */
+    public function test_a_submission_with_no_simulation_event_at_all_is_marked_questionnaire_only(): void
+    {
+        $respondent = Respondent::factory()->create();
+
+        $this->postJson(route('webhooks.tally'), $this->payload($respondent->session_token, 'sub_no_event'))
+            ->assertOk();
+
+        $this->assertSame(RespondentStatus::CompletedQuestionnaire, $respondent->fresh()->status);
     }
 
     public function test_the_kelas_question_updates_the_respondents_class_group(): void

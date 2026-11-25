@@ -18,7 +18,12 @@ enum RespondentStatus: string
             self::Sent => 'Terkirim',
             self::Clicked => 'Akses Link',
             self::CompletedBehavior => 'Selesai Simulasi',
-            self::CompletedQuestionnaire => 'Selesai Kuesioner',
+            // Distinct from Finished on purpose: this respondent filled the
+            // questionnaire without ever going through the simulation
+            // portal (e.g. a direct Tally link, or a resend that skipped
+            // straight to the questionnaire) — must read differently from
+            // "did both", not collapse into the same label.
+            self::CompletedQuestionnaire => 'Hanya Kuesioner (Tanpa Simulasi)',
             self::Finished => 'Selesai Kuesioner',
         };
     }

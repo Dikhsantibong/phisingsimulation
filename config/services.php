@@ -62,9 +62,8 @@ return [
     'simulation' => [
         'tally_url' => env('SIMULATION_TALLY_URL'),
         'tally_signing_secret' => env('SIMULATION_TALLY_SIGNING_SECRET'),
-        'ignored_after_hours' => (int) env('SIMULATION_IGNORED_AFTER_HOURS', 24),
+        'ignored_after_hours' => (int) env('SIMULATION_IGNORED_AFTER_HOURS', 12),
         'questionnaire_after_hours' => (int) env('SIMULATION_QUESTIONNAIRE_AFTER_HOURS', 24),
-        'max_reminders' => (int) env('SIMULATION_MAX_REMINDERS', 3),
 
         // Cron-less reminder heartbeat: the ProcessDueReminders middleware runs
         // the reminder scan on web traffic, at most once per interval below.

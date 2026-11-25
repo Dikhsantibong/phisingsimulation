@@ -158,11 +158,11 @@ class DataExportController extends Controller
         $total = AwarenessScorer::awarenessTotal($knowledge, $attitude, $behavior, $simulation);
 
         $secondsToClick = ($event && $event->sent_at && $event->first_access_at)
-            ? $event->first_access_at->diffInSeconds($event->sent_at)
+            ? $event->first_access_at->diffInSeconds($event->sent_at, absolute: true)
             : null;
 
         $secondsToRespond = ($event && $event->first_access_at && $event->response_at)
-            ? $event->response_at->diffInSeconds($event->first_access_at)
+            ? $event->response_at->diffInSeconds($event->first_access_at, absolute: true)
             : null;
 
         return array_merge(
@@ -294,11 +294,11 @@ class DataExportController extends Controller
         $result = $respondent->questionnaireResult;
 
         $secondsToClick = ($event && $event->sent_at && $event->first_access_at)
-            ? $event->first_access_at->diffInSeconds($event->sent_at)
+            ? $event->first_access_at->diffInSeconds($event->sent_at, absolute: true)
             : null;
 
         $secondsToRespond = ($event && $event->first_access_at && $event->response_at)
-            ? $event->response_at->diffInSeconds($event->first_access_at)
+            ? $event->response_at->diffInSeconds($event->first_access_at, absolute: true)
             : null;
 
         $answers = $result

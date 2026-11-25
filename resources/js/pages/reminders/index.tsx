@@ -9,6 +9,7 @@ import { bulkDestroy, index as remindersIndex, wa } from '@/routes/reminders';
 
 type ReminderTypeValue =
     | 'simulasi_diabaikan'
+    | 'portal_diabaikan'
     | 'kuesioner_belum_selesai'
     | 'batas_waktu_terlewat';
 
@@ -49,6 +50,8 @@ function fmt(iso: string | null): string {
 const typeBadgeClass: Record<ReminderTypeValue, string> = {
     simulasi_diabaikan:
         'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/50 dark:text-red-400',
+    portal_diabaikan:
+        'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400',
     kuesioner_belum_selesai:
         'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400',
     batas_waktu_terlewat:
@@ -60,6 +63,11 @@ const resendAction: Record<
     { confirmText: string; buttonLabel: string }
 > = {
     simulasi_diabaikan: {
+        confirmText:
+            'Sistem akan mengirim ulang peringatan keamanan palsu (pesan simulasi) ke WhatsApp responden.',
+        buttonLabel: 'Kirim Ulang Simulasi',
+    },
+    portal_diabaikan: {
         confirmText:
             'Sistem akan mengirim ulang peringatan keamanan palsu (pesan simulasi) ke WhatsApp responden.',
         buttonLabel: 'Kirim Ulang Simulasi',

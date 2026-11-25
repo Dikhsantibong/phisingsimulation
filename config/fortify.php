@@ -161,7 +161,14 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registration is deliberately disabled: this is a single-researcher
+        // system with no legitimate use case for self-service sign-up. A new
+        // account would start with no research_key_hash set, bypassing the
+        // login-time research-key check entirely (that check only applies
+        // once a research key has been configured for an existing account)
+        // — so leaving /register open lets anyone who finds the URL create
+        // a fully-privileged account with zero extra gate.
+        // Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

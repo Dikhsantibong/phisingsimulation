@@ -40,6 +40,13 @@ class SendReminderNotification implements ShouldQueue
                 $respondent->class_group,
                 $phone,
             ),
+            ReminderType::PortalDiabaikan => sprintf(
+                "⚠️ [%s]\nResponden %s (kelas %s) sempat membuka link simulasi, namun tidak pernah menekan tombol apapun di portal (tidak submit/tolak/lapor). Mohon di-follow-up.\nNo. WA responden: %s",
+                $reminder->reminder_type->label(),
+                $name,
+                $respondent->class_group,
+                $phone,
+            ),
             ReminderType::KuesionerBelumSelesai => sprintf(
                 "⚠️ [%s]\nResponden %s (kelas %s) sudah menyelesaikan simulasi phishing, namun belum mulai mengisi kuesioner. Mohon di-follow-up agar tidak lupa.\nNo. WA responden: %s",
                 $reminder->reminder_type->label(),

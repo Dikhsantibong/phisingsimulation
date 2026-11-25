@@ -114,4 +114,81 @@ class ReminderControllerTest extends TestCase
 
         $response->assertInertia(fn (Assert $page) => $page->where('reminders.data.0.respondent', $respondent->name ?? $respondent->email));
     }
+
+    /**
+     * A "Sempat Akses Portal, Tidak Dilanjutkan" reminder is also a stale
+     * snapshot once the respondent comes back and actually acts on the
+     * portal (submit/tolak/lapor) — it must stop showing.
+     */
+    public function test_a_portal_abandoned_reminder_disappears_once_the_respondent_acts_on_it(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::CompletedBehavior]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => now()->subHours(2),
+            'response_at' => now(),
+        ]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::PortalDiabaikan,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data', []));
+    }
+
+    public function test_a_portal_abandoned_reminder_still_shows_while_truly_not_acted_on(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::Clicked]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => now()->subHours(2),
+            'response_at' => null,
+        ]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::PortalDiabaikan,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data.0.respondent', $respondent->name ?? $respondent->email));
+    }
+
+    /**
+     * A respondent who completed both the simulation and the questionnaire
+     * must disappear from the Pengingat list regardless of any leftover
+     * reminder log row — the researcher never needs to be told to follow up
+     * on someone who is already fully done.
+     */
+    public function test_a_reminder_disappears_once_the_respondent_is_fully_finished(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::Finished]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::KuesionerBelumSelesai,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data', []));
+    }
+
+    /**
+     * A respondent who only ever filled the questionnaire — never the
+     * simulation portal — must also disappear from the Pengingat list once
+     * that questionnaire is genuinely submitted. The questionnaire being
+     * done is what matters here, not whether the simulation was ever done.
+     */
+    public function test_a_reminder_disappears_once_the_respondent_finished_the_questionnaire_only(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create(['status' => RespondentStatus::CompletedQuestionnaire]);
+        ReminderLog::factory()->for($respondent)->create([
+            'reminder_type' => ReminderType::SimulasiDiabaikan,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reminders.index'));
+
+        $response->assertInertia(fn (Assert $page) => $page->where('reminders.data', []));
+    }
 }

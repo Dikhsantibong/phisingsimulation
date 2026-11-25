@@ -49,7 +49,7 @@ class TallyImportTest extends TestCase
     {
         $user = User::factory()->create();
         $respondent = Respondent::factory()->create();
-        SimulationEvent::factory()->for($respondent)->create();
+        SimulationEvent::factory()->for($respondent)->create(['response_at' => now()]);
 
         $csv = "Submission ID,session_token,K1\n"
             ."sub_1,{$respondent->session_token},jawaban\n";
@@ -57,6 +57,27 @@ class TallyImportTest extends TestCase
         $this->actingAs($user)->post(route('export.import-tally'), ['file' => $this->csvFile($csv)]);
 
         $this->assertSame(RespondentStatus::Finished, $respondent->fresh()->status);
+    }
+
+    /**
+     * A simulation_event row exists the moment a message is sent (sent_at
+     * gets stamped immediately) regardless of whether the respondent ever
+     * opened the portal — so its mere existence must not be read as "they
+     * did the simulation". Only response_at (set when they actually act on
+     * the portal) means that.
+     */
+    public function test_respondent_sent_a_simulation_but_never_acted_on_it_is_marked_questionnaire_only(): void
+    {
+        $user = User::factory()->create();
+        $respondent = Respondent::factory()->create();
+        SimulationEvent::factory()->for($respondent)->create(['response_at' => null]);
+
+        $csv = "Submission ID,session_token,K1\n"
+            ."sub_1,{$respondent->session_token},jawaban\n";
+
+        $this->actingAs($user)->post(route('export.import-tally'), ['file' => $this->csvFile($csv)]);
+
+        $this->assertSame(RespondentStatus::CompletedQuestionnaire, $respondent->fresh()->status);
     }
 
     public function test_unknown_session_tokens_are_skipped_and_counted(): void

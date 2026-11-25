@@ -25,15 +25,25 @@ class ReminderController extends Controller
                     RespondentStatus::CompletedQuestionnaire,
                 ]);
             })
-            // A "Belum Akses Simulasi" reminder is a snapshot of a moment
-            // that has since passed if the respondent went on to actually
-            // open the link — stale once overtaken by events, so it must
-            // not keep showing (and notifying the researcher about) a
-            // "they never accessed it" state that is no longer true.
+            // "Belum Akses Simulasi" and "Sempat Akses Portal" reminders are
+            // each a snapshot of a moment that has since passed if the
+            // respondent went on to actually open the link / act on the
+            // portal — stale once overtaken by events, so they must not
+            // keep showing (and notifying the researcher about) a state
+            // that is no longer true.
             ->where(function ($query) {
-                $query->where('reminder_type', '!=', ReminderType::SimulasiDiabaikan)
-                    ->orWhereHas('respondent.simulationEvent', function ($q) {
-                        $q->whereNull('first_access_at');
+                $query->whereNotIn('reminder_type', [ReminderType::SimulasiDiabaikan, ReminderType::PortalDiabaikan])
+                    ->orWhere(function ($q) {
+                        $q->where('reminder_type', ReminderType::SimulasiDiabaikan)
+                            ->whereHas('respondent.simulationEvent', function ($sq) {
+                                $sq->whereNull('first_access_at');
+                            });
+                    })
+                    ->orWhere(function ($q) {
+                        $q->where('reminder_type', ReminderType::PortalDiabaikan)
+                            ->whereHas('respondent.simulationEvent', function ($sq) {
+                                $sq->whereNull('response_at');
+                            });
                     });
             })
             ->with('respondent')

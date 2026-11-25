@@ -29,6 +29,7 @@ class ReminderScheduler
     public function run(): int
     {
         return $this->remindNeverAccessed()
+            + $this->remindPortalAbandoned()
             + $this->remindQuestionnaireNotStarted()
             + $this->remindDeadlinePassed();
     }
@@ -70,6 +71,42 @@ class ReminderScheduler
 
                 // Never accessed before the deadline: freeze the outcome
                 // immediately, there is nothing left to wait for.
+                $respondent->simulationEvent?->update([
+                    'behavior_status' => BehaviorStatus::TidakMerespons,
+                ]);
+            }
+        }
+
+        return $created;
+    }
+
+    /**
+     * One-shot notice: the respondent opened the portal at least once but
+     * never acted on it (no submit/tolak/lapor) before the deadline — the
+     * gap between "never clicked" and "finished the simulation".
+     */
+    private function remindPortalAbandoned(): int
+    {
+        $defaultThreshold = now()->subHours((int) config('services.simulation.ignored_after_hours'));
+        $created = 0;
+
+        $respondents = Respondent::query()
+            ->where('status', RespondentStatus::Clicked)
+            ->whereHas('simulationEvent', function ($query) use ($defaultThreshold) {
+                $query->whereNotNull('first_access_at')
+                    ->whereNull('response_at')
+                    ->where('first_access_at', '<=', $defaultThreshold);
+            })
+            ->get();
+
+        foreach ($respondents as $respondent) {
+            $activeSince = $respondent->simulationEvent?->first_access_at;
+
+            if ($this->queueOnce($respondent, ReminderType::PortalDiabaikan, $activeSince)) {
+                $created++;
+
+                // Opened the portal but never finished it: freeze the
+                // outcome, same reasoning as "never accessed at all".
                 $respondent->simulationEvent?->update([
                     'behavior_status' => BehaviorStatus::TidakMerespons,
                 ]);

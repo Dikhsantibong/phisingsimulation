@@ -89,12 +89,16 @@ class AwarenessScorer
 
     /**
      * Skor Simulasi, from the respondent's final behavior category.
-     * Null when the respondent never reached a final behavior outcome.
+     *
+     * No status at all (respondent filled only the questionnaire, with no
+     * simulation portal interaction on record — e.g. a direct Tally link)
+     * is treated the same as "Tidak Merespons": scored as Waspada (100),
+     * not left blank, so Tingkat Kesadaran can still be computed for them.
      */
-    public static function simulationScore(?BehaviorStatus $status): ?int
+    public static function simulationScore(?BehaviorStatus $status): int
     {
         if ($status === null) {
-            return null;
+            return self::SIMULATION_SCORES[BehaviorStatus::TidakMerespons->value];
         }
 
         return self::SIMULATION_SCORES[$status->value];

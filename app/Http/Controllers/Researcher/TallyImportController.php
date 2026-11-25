@@ -109,7 +109,9 @@ class TallyImportController extends Controller
             $classGroup = $categoriser->extractClassGroup($assoc);
 
             $respondent->update([
-                'status' => $respondent->simulationEvent()->exists()
+                // See TallyWebhookController for why response_at (not mere
+                // existence of the row) is the right signal here.
+                'status' => $respondent->simulationEvent?->response_at !== null
                     ? RespondentStatus::Finished
                     : RespondentStatus::CompletedQuestionnaire,
                 ...($classGroup !== null ? ['class_group' => $classGroup] : []),

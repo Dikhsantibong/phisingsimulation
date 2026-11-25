@@ -1,7 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ClipboardList, MailWarning, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 
 const flowSteps = [
     'Email simulasi dikirim ke responden',
@@ -37,14 +37,9 @@ export default function Welcome() {
                                     <Link href={dashboard()}>Dashboard</Link>
                                 </Button>
                             ) : (
-                                <>
-                                    <Button asChild variant="ghost" size="sm">
-                                        <Link href={login()}>Masuk</Link>
-                                    </Button>
-                                    <Button asChild size="sm">
-                                        <Link href={register()}>Daftar</Link>
-                                    </Button>
-                                </>
+                                <Button asChild size="sm">
+                                    <Link href={login()}>Masuk</Link>
+                                </Button>
                             )}
                         </nav>
                     </div>

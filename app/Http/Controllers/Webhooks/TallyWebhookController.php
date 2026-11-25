@@ -63,7 +63,13 @@ class TallyWebhookController extends Controller
         ));
 
         $respondent->update([
-            'status' => $respondent->simulationEvent()->exists()
+            // A simulation_event row exists the moment a message is *sent*
+            // (sent_at gets stamped immediately), regardless of whether the
+            // respondent ever opened the portal — so its mere existence
+            // can't tell "did both" apart from "skipped the simulation
+            // entirely". response_at only gets set once they actually act
+            // on the portal (submit/tolak/lapor), so that's the real signal.
+            'status' => $respondent->simulationEvent?->response_at !== null
                 ? RespondentStatus::Finished
                 : RespondentStatus::CompletedQuestionnaire,
             ...($classGroup !== null ? ['class_group' => $classGroup] : []),

@@ -26,7 +26,7 @@ class SendWAReminderController extends Controller
         }
 
         $message = '';
-        if ($reminder->reminder_type === ReminderType::SimulasiDiabaikan) {
+        if (in_array($reminder->reminder_type, [ReminderType::SimulasiDiabaikan, ReminderType::PortalDiabaikan], true)) {
             // Extend the deadline by 24 hours so they can still access the simulation email link
             if ($respondent->expires_at && now()->greaterThan($respondent->expires_at)) {
                 $respondent->update(['expires_at' => now()->addHours(24)]);
@@ -42,7 +42,9 @@ class SendWAReminderController extends Controller
                      ."{$theme['warning_note']}\n\n"
                      ."👉 {$url}\n\n";
         } else {
-            // Questionnaire reminder (KuesionerBelumSelesai or BatasWaktuTerlewat)
+            // Questionnaire reminder (KuesionerBelumSelesai or BatasWaktuTerlewat) —
+            // the only remaining types, since SimulasiDiabaikan/PortalDiabaikan
+            // are handled above.
             $formUrl = $respondent->questionnaireUrl()
                 ?? route('simulation.reveal', ['respondent' => $respondent->session_token]);
 

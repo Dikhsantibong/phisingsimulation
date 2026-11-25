@@ -49,7 +49,16 @@ class AwarenessScorerTest extends TestCase
         $this->assertSame(60, AwarenessScorer::simulationScore(BehaviorStatus::Netral));
         $this->assertSame(100, AwarenessScorer::simulationScore(BehaviorStatus::Waspada));
         $this->assertSame(100, AwarenessScorer::simulationScore(BehaviorStatus::TidakMerespons));
-        $this->assertNull(AwarenessScorer::simulationScore(null));
+    }
+
+    /**
+     * A respondent who only filled the questionnaire (no simulation portal
+     * interaction at all, e.g. a direct Tally link) must not be left with a
+     * blank Tingkat Kesadaran — scored the same as "Tidak Merespons".
+     */
+    public function test_simulation_score_defaults_to_waspada_when_there_is_no_behavior_status_at_all(): void
+    {
+        $this->assertSame(100, AwarenessScorer::simulationScore(null));
     }
 
     public function test_awareness_total_is_the_average_of_the_four_scores(): void
