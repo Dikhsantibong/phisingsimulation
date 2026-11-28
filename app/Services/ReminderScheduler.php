@@ -84,6 +84,10 @@ class ReminderScheduler
      * One-shot notice: the respondent opened the portal at least once but
      * never acted on it (no submit/tolak/lapor) before the deadline — the
      * gap between "never clicked" and "finished the simulation".
+     *
+     * Mirrors {@see remindNeverAccessed()}: a per-respondent `expires_at`
+     * (the "Batas Waktu Respon" set when sending) takes priority over the
+     * global default threshold, same as the other three reminder types.
      */
     private function remindPortalAbandoned(): int
     {
@@ -92,10 +96,21 @@ class ReminderScheduler
 
         $respondents = Respondent::query()
             ->where('status', RespondentStatus::Clicked)
-            ->whereHas('simulationEvent', function ($query) use ($defaultThreshold) {
+            ->where(function ($q) use ($defaultThreshold) {
+                $q->where(function ($sq) {
+                    $sq->whereNotNull('expires_at')
+                        ->where('expires_at', '<=', now());
+                })
+                    ->orWhere(function ($sq) use ($defaultThreshold) {
+                        $sq->whereNull('expires_at')
+                            ->whereHas('simulationEvent', function ($ssq) use ($defaultThreshold) {
+                                $ssq->where('first_access_at', '<=', $defaultThreshold);
+                            });
+                    });
+            })
+            ->whereHas('simulationEvent', function ($query) {
                 $query->whereNotNull('first_access_at')
-                    ->whereNull('response_at')
-                    ->where('first_access_at', '<=', $defaultThreshold);
+                    ->whereNull('response_at');
             })
             ->get();
 

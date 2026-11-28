@@ -72,7 +72,9 @@ const CSV_HEADER_FIELDS: Record<string, CsvField> = {
  * all (fewer than 2 recognisable labels), so a header-less CSV falls back to
  * positional parsing below.
  */
-function mapHeaderColumns(cols: string[]): Partial<Record<number, CsvField>> | null {
+function mapHeaderColumns(
+    cols: string[],
+): Partial<Record<number, CsvField>> | null {
     const mapping: Partial<Record<number, CsvField>> = {};
     let matched = 0;
 
@@ -95,51 +97,82 @@ function positionalColumns(cols: string[]): Partial<Record<number, CsvField>> {
         : { 0: 'name', 1: 'class_group', 2: 'whatsapp_number' };
 }
 
+// Used to reject columns that merely *landed* in the email/no. WA position
+// (e.g. a timestamp or UUID from an unrelated export) rather than actually
+// containing an email address or phone number.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,}$/;
+
+type ParsedCsv = { rows: Row[]; skipped: number };
+
 /**
  * Parse pasted/uploaded CSV. Columns are identified by their header label
  * when the first line looks like one (any order, extra columns like a
  * leading "No" row-number column are ignored); otherwise falls back to the
  * positional layout: nama, kelas, [email,] no. WA.
+ *
+ * A row is only kept if its email/no. WA column actually looks like one —
+ * this is what catches a wrong/unrelated CSV (e.g. a Tally response export)
+ * instead of silently importing garbage into Kirim Simulasi.
  */
-function parseCsv(text: string): Row[] {
+function parseCsv(text: string): ParsedCsv {
     const lines = text
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean)
-        .map((line) => line.split(/[,;\t]/).map((c) => c.trim()));
+        .map((line) =>
+            line.split(/[,;\t]/).map((c) => c.trim().replace(/^"|"$/g, '')),
+        );
 
     if (lines.length === 0) {
-        return [];
+        return { rows: [], skipped: 0 };
     }
 
     const headerMapping = mapHeaderColumns(lines[0]);
     const dataRows = headerMapping ? lines.slice(1) : lines;
 
-    return dataRows
-        .map((cols) => {
-            const mapping = headerMapping ?? positionalColumns(cols);
-            const values: Record<CsvField, string> = {
-                name: '',
-                class_group: '',
-                email: '',
-                whatsapp_number: '',
-            };
+    let skipped = 0;
+    const rows: Row[] = [];
 
-            Object.entries(mapping).forEach(([indexKey, field]) => {
-                if (field) {
-                    values[field] = cols[Number(indexKey)] ?? '';
-                }
-            });
+    dataRows.forEach((cols) => {
+        const mapping = headerMapping ?? positionalColumns(cols);
+        const values: Record<CsvField, string> = {
+            name: '',
+            class_group: '',
+            email: '',
+            whatsapp_number: '',
+        };
 
-            return {
-                name: values.name,
-                class_group: values.class_group,
-                channel: (values.email ? 'email' : 'whatsapp') as Channel,
-                email: values.email,
-                whatsapp_number: values.whatsapp_number,
-            };
-        })
-        .filter((row) => row.email || row.whatsapp_number);
+        Object.entries(mapping).forEach(([indexKey, field]) => {
+            if (field) {
+                values[field] = cols[Number(indexKey)] ?? '';
+            }
+        });
+
+        const emailValid = EMAIL_PATTERN.test(values.email);
+        const phoneValid = PHONE_PATTERN.test(values.whatsapp_number);
+        const hadContact = Boolean(values.email || values.whatsapp_number);
+
+        if (hadContact && !emailValid && !phoneValid) {
+            skipped++;
+
+            return;
+        }
+
+        if (!emailValid && !phoneValid) {
+            return;
+        }
+
+        rows.push({
+            name: values.name,
+            class_group: values.class_group,
+            channel: emailValid ? 'email' : 'whatsapp',
+            email: emailValid ? values.email : '',
+            whatsapp_number: phoneValid ? values.whatsapp_number : '',
+        });
+    });
+
+    return { rows, skipped };
 }
 
 export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
@@ -150,6 +183,7 @@ export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
     );
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [csvWarning, setCsvWarning] = useState<string | null>(null);
 
     // Default null means no limit
     const [timeLimitValue, setTimeLimitValue] = useState<string>('');
@@ -174,8 +208,25 @@ export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
 
     const handleFile = (file: File) => {
         const reader = new FileReader();
-        reader.onload = () =>
-            setRows((prev) => [...prev, ...parseCsv(String(reader.result))]);
+        reader.onload = () => {
+            const { rows: parsedRows, skipped } = parseCsv(
+                String(reader.result),
+            );
+
+            setRows((prev) => [...prev, ...parsedRows]);
+
+            if (parsedRows.length === 0 && skipped > 0) {
+                setCsvWarning(
+                    `Format CSV tidak dikenali: ${skipped} baris memiliki kolom email/no. WA yang tidak valid. Pastikan file memakai kolom nama, kelas, email, no. WA.`,
+                );
+            } else if (skipped > 0) {
+                setCsvWarning(
+                    `${skipped} baris dilewati karena kolom email/no. WA-nya tidak valid.`,
+                );
+            } else {
+                setCsvWarning(null);
+            }
+        };
         reader.readAsText(file);
     };
 
@@ -316,6 +367,12 @@ export default function SendSimulation({ hasResearchKey, campaigns }: Props) {
                                 + Tambah baris
                             </Button>
                         </div>
+
+                        {csvWarning && (
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                                {csvWarning}
+                            </p>
+                        )}
 
                         {rows.length > 0 && (
                             <div className="overflow-x-auto rounded-lg border">

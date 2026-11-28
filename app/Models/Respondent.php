@@ -81,7 +81,9 @@ class Respondent extends Model
      */
     public function effectiveTheme(): SimulationTheme
     {
-        return $this->theme ?? $this->campaign?->theme ?? SimulationTheme::Elearning;
+        $campaignTheme = $this->campaign?->theme;
+
+        return $this->theme ?? $campaignTheme ?? SimulationTheme::Elearning;
     }
 
     /**

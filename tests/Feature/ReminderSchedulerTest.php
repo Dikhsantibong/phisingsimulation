@@ -110,6 +110,51 @@ class ReminderSchedulerTest extends TestCase
         $this->assertSame(1, $respondent->reminderLogs()->count());
     }
 
+    /**
+     * A per-respondent deadline (the "Batas Waktu Respon" set when sending)
+     * must take priority over the global default threshold here too, same
+     * as the other three reminder types — a respondent sent with a short
+     * deadline shouldn't have to wait for the global default just because
+     * they opened the portal but never finished it.
+     */
+    public function test_a_portal_abandoned_reminder_respects_the_respondents_own_deadline(): void
+    {
+        config()->set('services.simulation.ignored_after_hours', 24);
+
+        $respondent = Respondent::factory()->create([
+            'status' => RespondentStatus::Clicked,
+            'expires_at' => now()->subMinutes(5),
+        ]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => now()->subMinutes(10),
+            'response_at' => null,
+        ]);
+
+        $created = app(ReminderScheduler::class)->run();
+
+        $this->assertSame(1, $created);
+        $this->assertSame(
+            1,
+            $respondent->reminderLogs()->where('reminder_type', ReminderType::PortalDiabaikan)->count(),
+        );
+    }
+
+    public function test_a_portal_abandoned_reminder_waits_for_the_respondents_own_deadline_even_past_the_global_default(): void
+    {
+        config()->set('services.simulation.ignored_after_hours', 1);
+
+        $respondent = Respondent::factory()->create([
+            'status' => RespondentStatus::Clicked,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+        SimulationEvent::factory()->for($respondent)->create([
+            'first_access_at' => now()->subHours(30),
+            'response_at' => null,
+        ]);
+
+        $this->assertSame(0, app(ReminderScheduler::class)->run());
+    }
+
     public function test_it_schedules_an_early_notice_for_an_unfinished_questionnaire(): void
     {
         config()->set('services.simulation.questionnaire_after_hours', 24);
